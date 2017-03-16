@@ -6,3 +6,11 @@ docs/build
 htmlcov
 .docker
 .idea/
+# all log files
+*.log
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
