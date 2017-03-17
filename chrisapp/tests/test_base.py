@@ -1,6 +1,5 @@
 
 import os, shutil, json
-
 import unittest
 
 from chrisapp.base import ChrisApp
@@ -33,7 +32,7 @@ class ChrisAppTests(unittest.TestCase):
         Test whether get_json_representation method returns an appropriate json object
         """
         repres = self.app.get_json_representation()
-        self.assertEquals(repres['type'], self.app.TYPE)
+        self.assertEqual(repres['type'], self.app.TYPE)
         self.assertTrue('parameters' in repres)
 
     def test_launch(self):
@@ -70,11 +69,6 @@ class ChrisAppTests(unittest.TestCase):
         if success:
             with open(json_file_path) as options_file:    
                 options_dict = json.load(options_file)
-                self.assertEquals(options_dict, expected_options_dir)
+                self.assertEqual(options_dict, expected_options_dir)
             shutil.rmtree(test_dir)
-
-
-
-if __name__ == '__main__':
-    unittest.main()
 
