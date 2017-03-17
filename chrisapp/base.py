@@ -16,7 +16,7 @@
  *                         SP   SP          SP
  *                         Y    Y           Y
  *
- *                       U  L  T  R  O  N 
+ *                       U  L  T  R  O  N
  *
  * (c) 2016 Fetal-Neonatal Neuroimaging & Developmental Science Center
  *                   Boston Children's Hospital
@@ -40,13 +40,13 @@ class BaseClassAttrEnforcer(type):
                 raise ValueError("Class %s doesn't define %s class variable" % (name,
                                                                                 attr))
         type.__init__(cls, name, bases, d)
-        
+
 
 class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     """
     The super class for all valid ChRIS plugin apps.
     """
-    
+
     AUTHORS         = 'FNNDSC (dev@babyMRI.org)'
     TITLE           = ''
     CATEGORY        = ''
@@ -58,7 +58,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     DOCUMENTATION   = ''
     LICENSE         = ''
     VERSION         = ''
-  
+
     def __init__(self):
         """
         The constructor of this app.
@@ -68,38 +68,38 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         # the custom parameter list
         self._parameters = []
         self.add_argument('--json', action='store_true', dest='json', default=False,
-                           help='show json representation of app (default: FALSE)')
+                          help='show json representation of app (default: FALSE)')
         self.add_argument('--description', action='store_true', dest='description',
-                           default=False,
-                           help='show the description of this plugin (default: FALSE)')
-        if self.TYPE=='ds':
+                          default=False,
+                          help='show the description of this plugin (default: FALSE)')
+        if self.TYPE == 'ds':
             # 'ds' plugins require an input directory
             self.add_argument('inputdir', action='store', type=str,
                               help='directory containing the input files')
         # all plugins require an output directory
         self.add_argument('outputdir', action='store', type=str,
-                              help='directory containing the output files/folders')
+                          help='directory containing the output files/folders')
         self.add_argument('--opts', action='store', dest='opts',
                           help='file containing the arguments passed to this app')
         self.add_argument('--saveopts', action='store', dest='saveopts', default=False,
-                           help='save arguments to a JSON file (default: FALSE)')
+                          help='save arguments to a JSON file (default: FALSE)')
         self.define_parameters()
 
     def define_parameters(self):
         """
-        Define the parameters used by this app (abstract method in this class). 
+        Define the parameters used by this app (abstract method in this class).
         """
         raise NotImplementedError("ChrisApp.define_parameters(self)")
 
     def run(self, options):
         """
-        Execute this app (abstract method in this class). 
+        Execute this app (abstract method in this class).
         """
         raise NotImplementedError("ChrisApp.run(self, options)")
 
     def add_parameter(self, *args, **kwargs):
         """
-        Add a parameter to this app. 
+        Add a parameter to this app.
         """
         # make sure required parameter options were defined
         try:
@@ -108,7 +108,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
             optional = kwargs['optional']
             action = kwargs['action']
         except KeyError as e:
-            detail = "%s option required. " % e 
+            detail = "%s option required. " % e
             raise KeyError(detail)
         if optional and ('default' not in kwargs):
             detail = "A default values is required for optional parameter %s." % name
@@ -122,7 +122,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         if 'help' in kwargs:
             param_help = kwargs['help']
 
-        # store the parameters internally    
+        # store the parameters internally
         param = {'name': name, 'type': param_type, 'optional': optional, 'flag': args[0],
                  'action': action, 'help': param_help, 'default': default}
         self._parameters.append(param)
@@ -145,26 +145,26 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
 
     def launch(self, args=None):
         """
-        This method triggers the parsing of arguments. The run() method gets called 
+        This method triggers the parsing of arguments. The run() method gets called
         if not --json or --description are specified.
         """
         options = self.parse_args(args)
-        if (options.json):
+        if options.json:
             print(self.get_json_representation())
-        elif (options.description):
+        elif options.description:
             print(self.DESCRIPTION)
-        elif (options.opts):
+        elif options.opts:
              # run the app with options read from JSON file
             self.run(self.get_options_from_file(options.opts))
         else:
-            if (options.saveopts):
+            if options.saveopts:
                 self.save_options(options, options.saveopts)
             # run the app
             self.run(options)
 
     def get_options_from_file(self, file_path):
         """
-        Return the options parsed from a JSON file. 
+        Return the options parsed from a JSON file.
         """
         #read options JSON file
         with open(file_path) as options_file:    
@@ -172,12 +172,12 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         options = []
         for opt_name in options_dict:
             options.append(opt_name)
-            options.append(options_dict[opt_name])        
+            options.append(options_dict[opt_name])
         return self.parse_args(options)
 
     def save_options(self, options, file_path):
         """
-        Save the options passed to the app to a JSON file. 
+        Save the options passed to the app to a JSON file.
         """
         with open(file_path, 'w') as outfile:
             json.dump(vars(options), outfile)

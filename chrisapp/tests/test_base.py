@@ -9,7 +9,7 @@ def define_parameters(self):
     pass
 
 class ChrisAppTests(unittest.TestCase):
-    
+
     def setUp(self):
         # override abstract define_parameters method
         ChrisApp.define_parameters = define_parameters
@@ -37,7 +37,7 @@ class ChrisAppTests(unittest.TestCase):
 
     def test_launch(self):
         """
-        Test launch method 
+        Test launch method
         """
         # input and output dirs are predefined positional arguments so we moc them
         inputdir = "./"
@@ -48,7 +48,7 @@ class ChrisAppTests(unittest.TestCase):
         except NotImplementedError:
             success = True
         self.assertTrue(success)
-        
+
     def test_save_options(self):
         """
         Test save_options method
@@ -67,7 +67,7 @@ class ChrisAppTests(unittest.TestCase):
         expected_options_dir = {'json': False, 'outputdir': './', 'saveopts': False,
                                 'opts': None, 'inputdir': './', 'description': False}
         if success:
-            with open(json_file_path) as options_file:    
+            with open(json_file_path) as options_file:
                 options_dict = json.load(options_file)
                 self.assertEqual(options_dict, expected_options_dir)
             shutil.rmtree(test_dir)
