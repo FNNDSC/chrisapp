@@ -4,10 +4,10 @@ python:
   - "3.5"
 
 # command to install testing dependencies
-install: pip install nose
+install:
+  - pip install nose
 
 script:
-  - pylint chrisapp
   - python setup.py nosetests
 notifications:
   slack: fnndsc:gGPIVAOtMikWomA1EKrVYIjO

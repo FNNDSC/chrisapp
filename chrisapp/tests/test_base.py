@@ -1,5 +1,7 @@
 
-import os, shutil, json
+import os
+import shutil
+import json
 import unittest
 
 from chrisapp.base import ChrisApp
@@ -71,4 +73,3 @@ class ChrisAppTests(unittest.TestCase):
                 options_dict = json.load(options_file)
                 self.assertEqual(options_dict, expected_options_dir)
             shutil.rmtree(test_dir)
-

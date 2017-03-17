@@ -47,17 +47,17 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     The super class for all valid ChRIS plugin apps.
     """
 
-    AUTHORS         = 'FNNDSC (dev@babyMRI.org)'
-    TITLE           = ''
-    CATEGORY        = ''
-    TYPE            = 'ds'
-    SELFPATH        = ''
-    SELFEXEC        = ''
-    EXECSHELL       = ''
-    DESCRIPTION     = None
-    DOCUMENTATION   = ''
-    LICENSE         = ''
-    VERSION         = ''
+    AUTHORS = 'FNNDSC (dev@babyMRI.org)'
+    TITLE = ''
+    CATEGORY = ''
+    TYPE = 'ds'
+    SELFPATH = ''
+    SELFEXEC = ''
+    EXECSHELL = ''
+    DESCRIPTION = None
+    DOCUMENTATION = ''
+    LICENSE = ''
+    VERSION = ''
 
     def __init__(self):
         """
@@ -135,12 +135,12 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         """
         Return a JSON object with a representation of this app (type and parameters).
         """
-        repres                  = {}
-        repres['type']          = self.TYPE
-        repres['parameters']    = self._parameters
-        repres['selfpath']      = self.SELFPATH
-        repres['selfexec']      = self.SELFEXEC
-        repres['execshell']     = self.EXECSHELL
+        repres = {}
+        repres['type'] = self.TYPE
+        repres['parameters'] = self._parameters
+        repres['selfpath'] = self.SELFPATH
+        repres['selfexec'] = self.SELFEXEC
+        repres['execshell'] = self.EXECSHELL
         return repres
 
     def launch(self, args=None):
@@ -167,7 +167,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         Return the options parsed from a JSON file.
         """
         #read options JSON file
-        with open(file_path) as options_file:    
+        with open(file_path) as options_file:
             options_dict = json.load(options_file)
         options = []
         for opt_name in options_dict:
@@ -191,4 +191,3 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         print()
         self.print_help()
         sys.exit(2)
-
