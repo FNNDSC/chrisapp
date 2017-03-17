@@ -27,11 +27,27 @@
  */
 """
 import sys
-from argparse import ArgumentParser
+import argparse
 import json
 
 
+class JsonAction(argparse.Action):
+    """
+    Custom action class to bypass required positional arguments when printing the
+    Json representation.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs['nargs'] = 0
+        argparse.Action.__init__(self, *args, **kwargs)
+    def __call__(self, parser, namespace, values, option_string=None):
+        print(parser.get_json_representation())
+        parser.exit()
+
+
 class BaseClassAttrEnforcer(type):
+    """
+    Meta class to enforce class variables in subclasses.
+    """
     def __init__(cls, name, bases, d):
         # class variables to be enforced in the subclasses
         attrs = ['DESCRIPTION', 'TYPE', 'TITLE', 'LICENSE', 'SELFPATH', 'SELFEXEC', 'EXECSHELL']
@@ -42,7 +58,7 @@ class BaseClassAttrEnforcer(type):
         type.__init__(cls, name, bases, d)
 
 
-class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
+class ChrisApp(argparse.ArgumentParser, metaclass=BaseClassAttrEnforcer):
     """
     The super class for all valid ChRIS plugin apps.
     """
@@ -67,11 +83,8 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         self.options = []
         # the custom parameter list
         self._parameters = []
-        self.add_argument('--json', action='store_true', dest='json', default=False,
+        self.add_argument('--json', action=JsonAction, dest='json', default=False,
                           help='show json representation of app (default: FALSE)')
-        self.add_argument('--description', action='store_true', dest='description',
-                          default=False,
-                          help='show the description of this plugin (default: FALSE)')
         if self.TYPE == 'ds':
             # 'ds' plugins require an input directory
             self.add_argument('inputdir', action='store', type=str,
@@ -146,14 +159,10 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     def launch(self, args=None):
         """
         This method triggers the parsing of arguments. The run() method gets called
-        if not --json or --description are specified.
+        if --json is not specified.
         """
         options = self.parse_args(args)
-        if options.json:
-            print(self.get_json_representation())
-        elif options.description:
-            print(self.DESCRIPTION)
-        elif options.opts:
+        if options.opts:
              # run the app with options read from JSON file
             self.run(self.get_options_from_file(options.opts))
         else:

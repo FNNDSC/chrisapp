@@ -67,7 +67,7 @@ class ChrisAppTests(unittest.TestCase):
         success = os.path.isfile(json_file_path)
         self.assertTrue(success)
         expected_options_dir = {'json': False, 'outputdir': './', 'saveopts': False,
-                                'opts': None, 'inputdir': './', 'description': False}
+                                'opts': None, 'inputdir': './'}
         if success:
             with open(json_file_path) as options_file:
                 options_dict = json.load(options_file)
