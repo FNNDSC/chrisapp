@@ -39,8 +39,9 @@ class JsonAction(argparse.Action):
     def __init__(self, *args, **kwargs):
         kwargs['nargs'] = 0
         argparse.Action.__init__(self, *args, **kwargs)
+
     def __call__(self, parser, namespace, values, option_string=None):
-        print(parser.get_json_representation())
+        print(json.dumps(parser.get_json_representation()))
         parser.exit()
 
 
@@ -135,9 +136,9 @@ class ChrisApp(argparse.ArgumentParser, metaclass=BaseClassAttrEnforcer):
         if 'help' in kwargs:
             param_help = kwargs['help']
 
-        # store the parameters internally
-        param = {'name': name, 'type': param_type, 'optional': optional, 'flag': args[0],
-                 'action': action, 'help': param_help, 'default': default}
+        # store the parameters internally (param_type.__name__ to enable json serialization)
+        param = {'name': name, 'type': param_type.__name__, 'optional': optional,
+                 'flag': args[0], 'action': action, 'help': param_help, 'default': default}
         self._parameters.append(param)
 
         # add the parameter to the parser
@@ -163,7 +164,7 @@ class ChrisApp(argparse.ArgumentParser, metaclass=BaseClassAttrEnforcer):
         """
         options = self.parse_args(args)
         if options.opts:
-             # run the app with options read from JSON file
+            # run the app with options read from JSON file
             self.run(self.get_options_from_file(options.opts))
         else:
             if options.saveopts:
@@ -175,7 +176,7 @@ class ChrisApp(argparse.ArgumentParser, metaclass=BaseClassAttrEnforcer):
         """
         Return the options parsed from a JSON file.
         """
-        #read options JSON file
+        # read options JSON file
         with open(file_path) as options_file:
             options_dict = json.load(options_file)
         options = []
