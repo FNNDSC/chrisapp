@@ -27,18 +27,19 @@
  */
 """
 import sys
-import argparse
+from argparse import Action
+from argparse import ArgumentParser
 import json
 
 
-class JsonAction(argparse.Action):
+class JsonAction(Action):
     """
     Custom action class to bypass required positional arguments when printing the
     Json representation.
     """
     def __init__(self, *args, **kwargs):
         kwargs['nargs'] = 0
-        argparse.Action.__init__(self, *args, **kwargs)
+        Action.__init__(self, *args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         print(json.dumps(parser.get_json_representation()))
@@ -59,7 +60,7 @@ class BaseClassAttrEnforcer(type):
         type.__init__(cls, name, bases, d)
 
 
-class ChrisApp(argparse.ArgumentParser, metaclass=BaseClassAttrEnforcer):
+class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     """
     The super class for all valid ChRIS plugin apps.
     """
@@ -80,23 +81,24 @@ class ChrisApp(argparse.ArgumentParser, metaclass=BaseClassAttrEnforcer):
         """
         The constructor of this app.
         """
-        super(ChrisApp, self).__init__(description=self.DESCRIPTION)
-        self.options = []
+        ArgumentParser.__init__(self, description=self.DESCRIPTION)
         # the custom parameter list
         self._parameters = []
-        self.add_argument('--json', action=JsonAction, dest='json', default=False,
-                          help='show json representation of app (default: FALSE)')
+        ArgumentParser.add_argument(self, '--json', action=JsonAction, dest='json',
+                                    default=False,
+                                    help='show json representation of app (default: FALSE)')
         if self.TYPE == 'ds':
             # 'ds' plugins require an input directory
-            self.add_argument('inputdir', action='store', type=str,
+            ArgumentParser.add_argument(self, 'inputdir', action='store', type=str,
                               help='directory containing the input files')
         # all plugins require an output directory
-        self.add_argument('outputdir', action='store', type=str,
+        ArgumentParser.add_argument(self, 'outputdir', action='store', type=str,
                           help='directory containing the output files/folders')
-        self.add_argument('--opts', action='store', dest='opts',
+        ArgumentParser.add_argument(self, '--opts', action='store', dest='opts',
                           help='file containing the arguments passed to this app')
-        self.add_argument('--saveopts', action='store', dest='saveopts', default=False,
-                          help='save arguments to a JSON file (default: FALSE)')
+        ArgumentParser.add_argument(self, '--saveopts', action='store', dest='saveopts',
+                                    default=False,
+                                    help='save arguments to a JSON file (default: FALSE)')
         self.define_parameters()
 
     def define_parameters(self):
@@ -111,39 +113,51 @@ class ChrisApp(argparse.ArgumentParser, metaclass=BaseClassAttrEnforcer):
         """
         raise NotImplementedError("ChrisApp.run(self, options)")
 
-    def add_parameter(self, *args, **kwargs):
+    def add_argument(self, *args, **kwargs):
         """
         Add a parameter to this app.
         """
-        # make sure required parameter options were defined
-        try:
-            name = kwargs['dest']
-            param_type = kwargs['type']
-            optional = kwargs['optional']
-            action = kwargs['action']
-        except KeyError as e:
-            detail = "%s option required. " % e
-            raise KeyError(detail)
-        if optional and ('default' not in kwargs):
-            detail = "A default values is required for optional parameter %s." % name
-            raise KeyError(detail)
+        if ('action' in kwargs) and (kwargs['action'] == 'help'):
+            ArgumentParser.add_argument(self, *args, **kwargs)
+        else:
+            # Addmake sure required parameter options were defined
+            try:
+                name = kwargs['dest']
+                param_type = kwargs['type']
+                optional = kwargs['optional']
+            except KeyError as e:
+                detail = "%s option required. " % e
+                raise KeyError(detail)
+            if optional and ('default' not in kwargs):
+                detail = "A default value is required for optional parameters %s." % name
+                raise KeyError(detail)
 
-        # grab the default and help values
-        default = None
-        if 'default' in kwargs:
-            default = kwargs['default']
-        param_help = ""
-        if 'help' in kwargs:
-            param_help = kwargs['help']
+            # grab the default and help values
+            default = None
+            if 'default' in kwargs:
+                default = kwargs['default']
+            param_help = ""
+            if 'help' in kwargs:
+                param_help = kwargs['help']
 
-        # store the parameters internally (param_type.__name__ to enable json serialization)
-        param = {'name': name, 'type': param_type.__name__, 'optional': optional,
-                 'flag': args[0], 'action': action, 'help': param_help, 'default': default}
-        self._parameters.append(param)
+            # set the ArgumentParser's action
+            if param_type not in (str, int, float, bool):
+                raise ValueError("unsupported 'type'")
+            action = 'store'
+            if param_type == bool:
+                action = 'store_false' if default else 'store_true'
+                del kwargs['default'] # 'default' and 'type' not allowed for boolean actions
+                del kwargs['type']
+            kwargs['action'] = action
 
-        # add the parameter to the parser
-        del kwargs['optional']
-        self.add_argument(*args, **kwargs)
+            # store the parameters internally (param_type.__name__ to enable json serialization)
+            param = {'name': name, 'type': param_type.__name__, 'optional': optional,
+                     'flag': args[0], 'action': action, 'help': param_help, 'default': default}
+            self._parameters.append(param)
+
+            # add the parameter to the parser
+            del kwargs['optional']
+            ArgumentParser.add_argument(self, *args, **kwargs)
 
     def get_json_representation(self):
         """
