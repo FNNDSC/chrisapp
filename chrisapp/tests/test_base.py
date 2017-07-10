@@ -17,17 +17,20 @@ class ChrisAppTests(unittest.TestCase):
         ChrisApp.define_parameters = define_parameters
         self.app = ChrisApp()
 
-    def test_add_parameter(self):
+    def test_add_argument(self):
         """
-        Test whether add_parameter method adds a parameter to the app
+        Test whether add_argument method adds parameteres to the app
         """
-        self.app.add_parameter('--dir', action='store', dest='dir', type=str,
-                               default='./', optional=True, help='look up directory')
+        self.app.add_argument('--dir', dest='dir', type=str, default='./', optional=True,
+                              help='look up directory')
+        self.app.add_argument('--flag', dest='flag', type=bool, default=False, optional=True,
+                              help='a boolean flag')
         # input and output dirs are predefined positional arguments so we moc them
         inputdir = "./"
         outputdir = "./"
-        options = self.app.parse_args([inputdir, outputdir])
-        self.assertTrue(hasattr(options, "dir"))
+        options = self.app.parse_args([inputdir, outputdir, '--flag'])
+        self.assertEqual(options.dir, './')
+        self.assertTrue(options.flag)
 
     def test_get_json_representation(self):
         """
