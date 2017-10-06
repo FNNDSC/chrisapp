@@ -54,9 +54,9 @@ class ChrisAppTests(unittest.TestCase):
             success = True
         self.assertTrue(success)
 
-    def test_save_options(self):
+    def test_save_input_meta(self):
         """
-        Test save_options method
+        Test save_input_meta method
         """
         # create test directory where files are created
         test_dir = os.path.dirname(__file__) + '/test'
@@ -65,14 +65,13 @@ class ChrisAppTests(unittest.TestCase):
         inputdir = "./"
         outputdir = "./"
         options = self.app.parse_args([inputdir, outputdir])
-        json_file_path = os.path.join(test_dir, "opts.json")
-        self.app.save_options(options, json_file_path)
-        success = os.path.isfile(json_file_path)
+        self.app.save_input_meta(options)
+        success = os.path.isfile(os.path.join(inputdir, 'input.meta.json'))
         self.assertTrue(success)
-        expected_options_dir = {'json': False, 'outputdir': './', 'saveopts': False,
-                                'opts': None, 'inputdir': './'}
+        expected_options_dir = {'json': False, 'outputdir': './', 'saveinputmeta': False,
+                                'inputmeta': None, 'inputdir': './', 'saveoutputmeta': False}
         if success:
-            with open(json_file_path) as options_file:
+            with open(os.path.join(inputdir, 'input.meta.json')) as options_file:
                 options_dict = json.load(options_file)
                 self.assertEqual(options_dict, expected_options_dir)
             shutil.rmtree(test_dir)
