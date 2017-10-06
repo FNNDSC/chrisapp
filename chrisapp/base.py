@@ -27,6 +27,7 @@
  */
 """
 import sys
+import os
 from argparse import Action
 from argparse import ArgumentParser
 import json
@@ -52,7 +53,8 @@ class BaseClassAttrEnforcer(type):
     """
     def __init__(cls, name, bases, d):
         # class variables to be enforced in the subclasses
-        attrs = ['DESCRIPTION', 'TYPE', 'TITLE', 'LICENSE', 'SELFPATH', 'SELFEXEC', 'EXECSHELL']
+        attrs = ['DESCRIPTION', 'TYPE', 'TITLE', 'LICENSE', 'SELFPATH', 'SELFEXEC',
+                 'EXECSHELL', 'OUTPUT_META_DICT']
         for attr in attrs:
             if attr not in d:
                 raise ValueError("Class %s doesn't define %s class variable" % (name,
@@ -76,6 +78,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     DOCUMENTATION = ''
     LICENSE = ''
     VERSION = ''
+    OUTPUT_META_DICT = {}
 
     def __init__(self):
         """
@@ -94,11 +97,14 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         # all plugins require an output directory
         ArgumentParser.add_argument(self, 'outputdir', action='store', type=str,
                           help='directory containing the output files/folders')
-        ArgumentParser.add_argument(self, '--opts', action='store', dest='opts',
-                          help='file containing the arguments passed to this app')
-        ArgumentParser.add_argument(self, '--saveopts', action='store', dest='saveopts',
-                                    default=False,
-                                    help='save arguments to a JSON file (default: FALSE)')
+        ArgumentParser.add_argument(self, '--inputmeta', action='store', dest='inputmeta',
+                          help='meta data file containing the arguments passed to this app')
+        ArgumentParser.add_argument(self, '--saveinputmeta', action='store_true',
+                                    dest='saveinputmeta',
+                                    help='save arguments to a JSON file')
+        ArgumentParser.add_argument(self, '--saveoutputmeta', action='store_true',
+                                    dest='saveoutputmeta',
+                                    help='save output meta data to a JSON file')
         self.define_parameters()
 
     def define_parameters(self):
@@ -177,14 +183,16 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         if --json is not specified.
         """
         options = self.parse_args(args)
-        if options.opts:
-            # run the app with options read from JSON file
-            self.run(self.get_options_from_file(options.opts))
-        else:
-            if options.saveopts:
-                self.save_options(options, options.saveopts)
-            # run the app
-            self.run(options)
+        if options.saveinputmeta:
+            # save original input options
+            self.save_input_meta(options)
+        if options.inputmeta:
+            # read new options from JSON file
+            options = self.get_options_from_file(options.inputmeta)
+        self.run(options)
+        if options.saveoutputmeta:
+            self.save_output_meta(options)
+
 
     def get_options_from_file(self, file_path):
         """
@@ -199,12 +207,21 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
             options.append(options_dict[opt_name])
         return self.parse_args(options)
 
-    def save_options(self, options, file_path):
+    def save_input_meta(self, options):
         """
-        Save the options passed to the app to a JSON file.
+        Save the input meta data (options passed to the app) to a JSON file.
         """
+        file_path = os.path.join(options.outputdir, 'input.meta.json')
         with open(file_path, 'w') as outfile:
             json.dump(vars(options), outfile)
+
+    def save_output_meta(self, options):
+        """
+        Save descriptive output meta data to a JSON file.
+        """
+        file_path = os.path.join(options.outputdir, 'output.meta.json')
+        with open(file_path, 'w') as outfile:
+            json.dump(options.OUTPUT_META_DICT, outfile)
 
     def error(self, message):
         """
