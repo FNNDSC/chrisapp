@@ -185,14 +185,14 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         options = self.parse_args(args)
         if options.saveinputmeta:
             # save original input options
-            self.save_input_meta(options)
+            self.save_input_meta()
         if options.inputmeta:
             # read new options from JSON file
             options = self.get_options_from_file(options.inputmeta)
+        self.options = options
         self.run(options)
         if options.saveoutputmeta:
-            self.save_output_meta(options)
-
+            self.save_output_meta()
 
     def get_options_from_file(self, file_path):
         """
@@ -207,21 +207,32 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
             options.append(options_dict[opt_name])
         return self.parse_args(options)
 
-    def save_input_meta(self, options):
+    def save_input_meta(self):
         """
         Save the input meta data (options passed to the app) to a JSON file.
         """
+        options = self.options
         file_path = os.path.join(options.outputdir, 'input.meta.json')
         with open(file_path, 'w') as outfile:
             json.dump(vars(options), outfile)
 
-    def save_output_meta(self, options):
+    def save_output_meta(self):
         """
         Save descriptive output meta data to a JSON file.
         """
+        options = self.options
         file_path = os.path.join(options.outputdir, 'output.meta.json')
         with open(file_path, 'w') as outfile:
-            json.dump(options.OUTPUT_META_DICT, outfile)
+            json.dump(self.OUTPUT_META_DICT, outfile)
+
+    def load_output_meta(self):
+        """
+        Load descriptive output meta data from a JSON file in the input directory.
+        """
+        options = self.options
+        file_path = os.path.join(options.inputdir, 'output.meta.json')
+        with open(file_path) as infile:
+            return json.load(infile)
 
     def error(self, message):
         """
