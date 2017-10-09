@@ -63,15 +63,51 @@ class ChrisAppTests(unittest.TestCase):
         if not os.path.exists(test_dir):
             os.makedirs(test_dir)
         inputdir = "./"
-        outputdir = "./"
-        options = self.app.parse_args([inputdir, outputdir])
-        self.app.save_input_meta(options)
-        success = os.path.isfile(os.path.join(inputdir, 'input.meta.json'))
+        outputdir = test_dir
+        self.app.options = self.app.parse_args([inputdir, outputdir])
+        self.app.save_input_meta()
+        success = os.path.isfile(os.path.join(outputdir, 'input.meta.json'))
         self.assertTrue(success)
-        expected_options_dir = {'json': False, 'outputdir': './', 'saveinputmeta': False,
-                                'inputmeta': None, 'inputdir': './', 'saveoutputmeta': False}
+        expected_input_meta_dict = {'json': False, 'outputdir': outputdir, 'saveinputmeta': False,
+                                'inputmeta': None, 'inputdir': inputdir, 'saveoutputmeta': False}
         if success:
-            with open(os.path.join(inputdir, 'input.meta.json')) as options_file:
-                options_dict = json.load(options_file)
-                self.assertEqual(options_dict, expected_options_dir)
-            shutil.rmtree(test_dir)
+            with open(os.path.join(outputdir, 'input.meta.json')) as meta_file:
+                input_meta_dict = json.load(meta_file)
+                self.assertEqual(input_meta_dict, expected_input_meta_dict)
+        shutil.rmtree(test_dir)
+
+    def test_save_output_meta(self):
+        """
+        Test save_output_meta method
+        """
+        # create test directory where files are created
+        test_dir = os.path.dirname(__file__) + '/test'
+        if not os.path.exists(test_dir):
+            os.makedirs(test_dir)
+        inputdir = "./"
+        outputdir = test_dir
+        self.app.options = self.app.parse_args([inputdir, outputdir])
+        self.app.save_output_meta()
+        success = os.path.isfile(os.path.join(outputdir, 'output.meta.json'))
+        self.assertTrue(success)
+        if success:
+            with open(os.path.join(outputdir, 'output.meta.json')) as meta_file:
+                output_meta_dict = json.load(meta_file)
+                self.assertEqual(output_meta_dict, self.app.OUTPUT_META_DICT)
+        shutil.rmtree(test_dir)
+
+    def test_load_output_meta(self):
+        """
+        Test load_output_meta method
+        """
+        # create test directory where files are created
+        test_dir = os.path.dirname(__file__) + '/test'
+        if not os.path.exists(test_dir):
+            os.makedirs(test_dir)
+        inputdir = test_dir
+        outputdir = test_dir
+        self.app.options = self.app.parse_args([inputdir, outputdir])
+        self.app.save_output_meta()
+        output_meta_dict = self.app.load_output_meta()
+        self.assertEqual(output_meta_dict, self.app.OUTPUT_META_DICT)
+        shutil.rmtree(test_dir)
