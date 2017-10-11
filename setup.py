@@ -12,7 +12,7 @@ def readme():
 
 setup(
       name             =   'chrisapp',
-      version          =   '1.0.2',
+      version          =   '1.0.3',
       description      =   '(Python) Base module for Chris plugin apps',
       long_description =   readme(),
       author           =   'FNNDSC',
