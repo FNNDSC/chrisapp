@@ -182,16 +182,16 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         This method triggers the parsing of arguments. The run() method gets called
         if --json is not specified.
         """
-        options = self.parse_args(args)
-        if options.saveinputmeta:
+        self.options = self.parse_args(args)
+        if self.options.saveinputmeta:
             # save original input options
             self.save_input_meta()
-        if options.inputmeta:
+        if self.options.inputmeta:
             # read new options from JSON file
-            options = self.get_options_from_file(options.inputmeta)
-        self.options = options
-        self.run(options)
-        if options.saveoutputmeta:
+            self.options = self.get_options_from_file(self.options.inputmeta)
+        self.run(self.options)
+        # if required save meta data for the output after running the plugin app
+        if self.options.saveoutputmeta:
             self.save_output_meta()
 
     def get_options_from_file(self, file_path):
