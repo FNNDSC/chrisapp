@@ -134,10 +134,8 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         """
         Add a parameter to this app.
         """
-        if ('action' in kwargs) and (kwargs['action'] == 'help'):
-            ArgumentParser.add_argument(self, *args, **kwargs)
-        else:
-            # Addmake sure required parameter options were defined
+        if not (('action' in kwargs) and (kwargs['action'] == 'help')):
+            # make sure required parameter options were defined
             try:
                 name = kwargs['dest']
                 param_type = kwargs['type']
@@ -158,8 +156,9 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                 param_help = kwargs['help']
 
             # set the ArgumentParser's action
-            if param_type not in (str, int, float, bool):
-                raise ValueError("unsupported 'type'")
+            if param_type not in (str, int, float, bool, ChrisApp.path):
+                detail = "unsupported type: '%s'" % param_type
+                raise ValueError(detail)
             action = 'store'
             if param_type == bool:
                 action = 'store_false' if default else 'store_true'
@@ -174,7 +173,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
 
             # add the parameter to the parser
             del kwargs['optional']
-            ArgumentParser.add_argument(self, *args, **kwargs)
+        ArgumentParser.add_argument(self, *args, **kwargs)
 
     def get_json_representation(self):
         """
