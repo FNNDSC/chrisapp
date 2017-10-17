@@ -30,6 +30,7 @@ import sys
 import os
 from argparse import Action
 from argparse import ArgumentParser
+from argparse import ArgumentTypeError
 import json
 
 
@@ -106,6 +107,16 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                                     dest='saveoutputmeta',
                                     help='save output meta data to a JSON file')
         self.define_parameters()
+
+    @staticmethod
+    def path(string):
+        """
+        Define the 'path' data type that can be used by apps.
+        """
+        if not os.path.exists(string):
+            msg = "Path %s not found!" % string
+            raise ArgumentTypeError(msg)
+        return string
 
     def define_parameters(self):
         """
