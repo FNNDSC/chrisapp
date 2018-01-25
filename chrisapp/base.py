@@ -55,7 +55,7 @@ class BaseClassAttrEnforcer(type):
     def __init__(cls, name, bases, d):
         # class variables to be enforced in the subclasses
         attrs = ['DESCRIPTION', 'TYPE', 'TITLE', 'LICENSE', 'SELFPATH', 'SELFEXEC',
-                 'EXECSHELL', 'OUTPUT_META_DICT']
+                 'EXECSHELL', 'OUTPUT_META_DICT', 'AUTHORS', 'VERSION']
         for attr in attrs:
             if attr not in d:
                 raise ValueError("Class %s doesn't define %s class variable" % (name,
@@ -75,7 +75,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     SELFPATH = ''
     SELFEXEC = ''
     EXECSHELL = ''
-    DESCRIPTION = None
+    DESCRIPTION = ''
     DOCUMENTATION = ''
     LICENSE = ''
     VERSION = ''
@@ -182,6 +182,13 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         repres = {}
         repres['type'] = self.TYPE
         repres['parameters'] = self._parameters
+        repres['authors'] = self.AUTHORS
+        repres['title'] = self.TITLE
+        repres['category'] = self.CATEGORY
+        repres['description'] = self.DESCRIPTION
+        repres['documentation'] = self.DOCUMENTATION
+        repres['license'] = self.LICENSE
+        repres['version'] = self.VERSION
         repres['selfpath'] = self.SELFPATH
         repres['selfexec'] = self.SELFEXEC
         repres['execshell'] = self.EXECSHELL

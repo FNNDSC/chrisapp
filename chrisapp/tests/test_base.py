@@ -39,6 +39,13 @@ class ChrisAppTests(unittest.TestCase):
         repres = self.app.get_json_representation()
         self.assertEqual(repres['type'], self.app.TYPE)
         self.assertTrue('parameters' in repres)
+        self.assertTrue('authors' in repres)
+        self.assertTrue('title' in repres)
+        self.assertTrue('category' in repres)
+        self.assertTrue('description' in repres)
+        self.assertTrue('license' in repres)
+        self.assertTrue('version' in repres)
+        self.assertTrue('documentation' in repres)
 
     def test_launch(self):
         """
