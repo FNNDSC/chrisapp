@@ -36,8 +36,8 @@ import json
 
 class JsonAction(Action):
     """
-    Custom action class to bypass required positional arguments when printing the
-    Json representation.
+    Custom action class to bypass required positional arguments when printing the app's
+    JSON representation.
     """
     def __init__(self, *args, **kwargs):
         kwargs['nargs'] = 0
@@ -45,6 +45,16 @@ class JsonAction(Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         print(json.dumps(parser.get_json_representation()))
+        parser.exit()
+
+
+class SaveJsonAction(Action):
+    """
+    Custom action class to bypass required positional arguments when saving the app's JSON
+    representation to a file.
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.save_json_representation(values)
         parser.exit()
 
 
@@ -88,9 +98,13 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         ArgumentParser.__init__(self, description=self.DESCRIPTION)
         # the custom parameter list
         self._parameters = []
+        # operations on automatically computed JSON representation of the app
         ArgumentParser.add_argument(self, '--json', action=JsonAction, dest='json',
                                     default=False,
-                                    help='show json representation of app (default: FALSE)')
+                                    help='show json representation of app and exit')
+        ArgumentParser.add_argument(self, '--savejson', action=SaveJsonAction,
+                                    type=ChrisApp.path, dest='savejson', metavar='DIR',
+                                    help='save json representation file to DIR and exit')
         if self.TYPE == 'ds':
             # 'ds' plugins require an input directory
             ArgumentParser.add_argument(self, 'inputdir', action='store', type=str,
@@ -193,6 +207,15 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         repres['selfexec'] = self.SELFEXEC
         repres['execshell'] = self.EXECSHELL
         return repres
+
+    def save_json_representation(self, dir_path):
+        """
+        Save the app's JSON representation object to a JSON file.
+        """
+        file_name = self.__class__.__name__+ '.json'
+        file_path = os.path.join(dir_path, file_name)
+        with open(file_path, 'w') as outfile:
+            json.dump(self.get_json_representation(), outfile)
 
     def launch(self, args=None):
         """

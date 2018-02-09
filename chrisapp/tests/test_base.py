@@ -17,6 +17,14 @@ class ChrisAppTests(unittest.TestCase):
         ChrisApp.define_parameters = define_parameters
         self.app = ChrisApp()
 
+        # create test directory where test files are created
+        self.test_dir = os.path.dirname(__file__) + '/test'
+        if not os.path.exists(self.test_dir):
+            os.makedirs(self.test_dir)
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
+
     def test_add_argument(self):
         """
         Test whether add_argument method adds parameteres to the app
@@ -47,6 +55,21 @@ class ChrisAppTests(unittest.TestCase):
         self.assertTrue('version' in repres)
         self.assertTrue('documentation' in repres)
 
+    def test_save_json_representation(self):
+        """
+        Test whether save_json_representation method saves the json representatio object
+        to an appropriate json file
+        """
+        outputdir = self.test_dir
+        self.app.save_json_representation(outputdir)
+        file_path = os.path.join(outputdir, self.app.__class__.__name__+ '.json')
+        success = os.path.isfile(file_path)
+        self.assertTrue(success)
+        if success:
+            with open(file_path) as json_file:
+                repres = json.load(json_file)
+                self.assertEqual(repres, self.app.get_json_representation())
+
     def test_launch(self):
         """
         Test launch method
@@ -65,34 +88,27 @@ class ChrisAppTests(unittest.TestCase):
         """
         Test save_input_meta method
         """
-        # create test directory where files are created
-        test_dir = os.path.dirname(__file__) + '/test'
-        if not os.path.exists(test_dir):
-            os.makedirs(test_dir)
         inputdir = "./"
-        outputdir = test_dir
+        outputdir = self.test_dir
         self.app.options = self.app.parse_args([inputdir, outputdir])
         self.app.save_input_meta()
         success = os.path.isfile(os.path.join(outputdir, 'input.meta.json'))
         self.assertTrue(success)
-        expected_input_meta_dict = {'json': False, 'outputdir': outputdir, 'saveinputmeta': False,
-                                'inputmeta': None, 'inputdir': inputdir, 'saveoutputmeta': False}
+        expected_input_meta_dict = {'json': False, 'outputdir': outputdir,
+                                    'saveinputmeta': False, 'inputmeta': None,
+                                    'inputdir': inputdir, 'saveoutputmeta': False,
+                                    'savejson': None}
         if success:
             with open(os.path.join(outputdir, 'input.meta.json')) as meta_file:
                 input_meta_dict = json.load(meta_file)
                 self.assertEqual(input_meta_dict, expected_input_meta_dict)
-        shutil.rmtree(test_dir)
 
     def test_save_output_meta(self):
         """
         Test save_output_meta method
         """
-        # create test directory where files are created
-        test_dir = os.path.dirname(__file__) + '/test'
-        if not os.path.exists(test_dir):
-            os.makedirs(test_dir)
         inputdir = "./"
-        outputdir = test_dir
+        outputdir = self.test_dir
         self.app.options = self.app.parse_args([inputdir, outputdir])
         self.app.save_output_meta()
         success = os.path.isfile(os.path.join(outputdir, 'output.meta.json'))
@@ -101,20 +117,14 @@ class ChrisAppTests(unittest.TestCase):
             with open(os.path.join(outputdir, 'output.meta.json')) as meta_file:
                 output_meta_dict = json.load(meta_file)
                 self.assertEqual(output_meta_dict, self.app.OUTPUT_META_DICT)
-        shutil.rmtree(test_dir)
 
     def test_load_output_meta(self):
         """
         Test load_output_meta method
         """
-        # create test directory where files are created
-        test_dir = os.path.dirname(__file__) + '/test'
-        if not os.path.exists(test_dir):
-            os.makedirs(test_dir)
-        inputdir = test_dir
-        outputdir = test_dir
+        inputdir = self.test_dir
+        outputdir = self.test_dir
         self.app.options = self.app.parse_args([inputdir, outputdir])
         self.app.save_output_meta()
         output_meta_dict = self.app.load_output_meta()
         self.assertEqual(output_meta_dict, self.app.OUTPUT_META_DICT)
-        shutil.rmtree(test_dir)
