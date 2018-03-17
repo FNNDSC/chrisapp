@@ -89,6 +89,13 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     DOCUMENTATION = ''
     LICENSE = ''
     VERSION = ''
+    MAX_NUMBER_OF_WORKERS = 1  # Override with integer value
+    MIN_NUMBER_OF_WORKERS = 1  # Override with integer value
+    MAX_CPU_LIMIT         = '' # Override with millicore value as string, e.g. '2000m'
+    MIN_CPU_LIMIT         = '' # Override with millicore value as string, e.g. '2000m'
+    MAX_MEMORY_LIMIT      = '' # Override with string, e.g. '1Gi', '2000Mi'
+    MIN_MEMORY_LIMIT      = '' # Override with string, e.g. '1Gi', '2000Mi'
+
     OUTPUT_META_DICT = {}
 
     def __init__(self):
@@ -206,6 +213,12 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         repres['selfpath'] = self.SELFPATH
         repres['selfexec'] = self.SELFEXEC
         repres['execshell'] = self.EXECSHELL
+        repres['max_number_of_workers'] = self.MAX_NUMBER_OF_WORKERS
+        repres['min_number_of_workers'] = self.MIN_NUMBER_OF_WORKERS
+        repres['max_memory_limit'] = self.MAX_MEMORY_LIMIT
+        repres['max_cpu_limit'] = self.MAX_CPU_LIMIT 
+        repres['min_memory_limit'] = self.MIN_MEMORY_LIMIT
+        repres['min_cpu_limit'] = self.MIN_CPU_LIMIT 
         return repres
 
     def save_json_representation(self, dir_path):
