@@ -95,6 +95,8 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     MIN_CPU_LIMIT         = '' # Override with millicore value as string, e.g. '2000m'
     MAX_MEMORY_LIMIT      = '' # Override with string, e.g. '1Gi', '2000Mi'
     MIN_MEMORY_LIMIT      = '' # Override with string, e.g. '1Gi', '2000Mi'
+    MIN_GPU_LIMIT         = 0  # Specifies the number of GPUs
+    MAX_GPU_LIMIT         = 0  # Specifies the number of GPUs
 
     OUTPUT_META_DICT = {}
 
@@ -219,6 +221,8 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         repres['max_cpu_limit'] = self.MAX_CPU_LIMIT 
         repres['min_memory_limit'] = self.MIN_MEMORY_LIMIT
         repres['min_cpu_limit'] = self.MIN_CPU_LIMIT 
+        repres['min_gpu_limit'] = self.MIN_GPU_LIMIT
+        repres['max_gpu_limit'] = self.MAX_GPU_LIMIT
         return repres
 
     def save_json_representation(self, dir_path):
