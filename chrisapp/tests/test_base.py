@@ -57,7 +57,7 @@ class ChrisAppTests(unittest.TestCase):
 
     def test_save_json_representation(self):
         """
-        Test whether save_json_representation method saves the json representatio object
+        Test whether save_json_representation method saves the json representation object
         to an appropriate json file
         """
         outputdir = self.test_dir
