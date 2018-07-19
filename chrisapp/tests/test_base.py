@@ -47,6 +47,7 @@ class ChrisAppTests(unittest.TestCase):
         repres = self.app.get_json_representation()
         self.assertEqual(repres['type'], self.app.TYPE)
         self.assertTrue('parameters' in repres)
+        self.assertTrue('icon' in repres)
         self.assertTrue('authors' in repres)
         self.assertTrue('title' in repres)
         self.assertTrue('category' in repres)
@@ -54,6 +55,16 @@ class ChrisAppTests(unittest.TestCase):
         self.assertTrue('license' in repres)
         self.assertTrue('version' in repres)
         self.assertTrue('documentation' in repres)
+        self.assertTrue('selfpath' in repres)
+        self.assertTrue('selfexec' in repres)
+        self.assertTrue('execshell' in repres)
+        self.assertTrue('max_number_of_workers' in repres)
+        self.assertTrue('max_memory_limit' in repres)
+        self.assertTrue('max_cpu_limit' in repres)
+        self.assertTrue('min_memory_limit' in repres)
+        self.assertTrue('min_cpu_limit' in repres)
+        self.assertTrue('min_gpu_limit' in repres)
+        self.assertTrue('max_gpu_limit' in repres)
 
     def test_save_json_representation(self):
         """
