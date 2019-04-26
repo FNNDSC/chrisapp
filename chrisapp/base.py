@@ -34,15 +34,20 @@ from argparse import ArgumentTypeError
 import json
 
 
-class JsonAction(Action):
+class NoArgAction(Action):
     """
-    Custom action class to bypass required positional arguments when printing the app's
-    JSON representation.
+    Base class for action classes that do not have arguments.
     """
     def __init__(self, *args, **kwargs):
         kwargs['nargs'] = 0
         Action.__init__(self, *args, **kwargs)
 
+
+class JsonAction(NoArgAction):
+    """
+    Custom action class to bypass required positional arguments when printing the app's
+    JSON representation.
+    """
     def __call__(self, parser, namespace, values, option_string=None):
         print(json.dumps(parser.get_json_representation()))
         parser.exit()
@@ -55,6 +60,26 @@ class SaveJsonAction(Action):
     """
     def __call__(self, parser, namespace, values, option_string=None):
         parser.save_json_representation(values)
+        parser.exit()
+
+
+class VersionAction(NoArgAction):
+    """
+    Custom action class to bypass required positional arguments when printing the app's
+    version.
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        print('Plugin Version: %s' % parser.get_version())
+        parser.exit()
+
+
+class AppMetaDataAction(NoArgAction):
+    """
+    Custom action class to bypass required positional arguments when printing the app's
+    meta data.
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.print_app_meta_data()
         parser.exit()
 
 
@@ -130,6 +155,15 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         ArgumentParser.add_argument(self, '--saveoutputmeta', action='store_true',
                                     dest='saveoutputmeta',
                                     help='save output meta data to a JSON file')
+        ArgumentParser.add_argument(self, '--version', action=VersionAction,
+                                    dest='version', default=False,
+                                    help='print app version and exit')
+        ArgumentParser.add_argument(self, '--meta', action=AppMetaDataAction,
+                                    dest='meta', default=False,
+                                    help='print app meta data and exit')
+        ArgumentParser.add_argument(self, '-v', '--verbosity', action='store', type=str,
+                                    dest='verbosity', default="0",
+                                    help='verbosity level for the app')
         self.define_parameters()
 
     @staticmethod
@@ -238,8 +272,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
 
     def launch(self, args=None):
         """
-        This method triggers the parsing of arguments. The run() method gets called
-        if --json is not specified.
+        This method triggers the parsing of arguments.
         """
         self.options = self.parse_args(args)
         if self.options.saveinputmeta:
@@ -292,6 +325,22 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         file_path = os.path.join(options.inputdir, 'output.meta.json')
         with open(file_path) as infile:
             return json.load(infile)
+
+    def get_version(self):
+        """
+        Return the app's version.
+        """
+        return self.VERSION
+
+    def print_app_meta_data(self):
+        """
+        Print the app's meta data.
+        """
+        l_metaData  = dir(self)
+        l_classVar  = [x for x in l_metaData if x.isupper() ]
+        for str_var in l_classVar:
+            str_val = getattr(self, str_var)
+            print("%20s: %s" % (str_var, str_val))
 
     def error(self, message):
         """
