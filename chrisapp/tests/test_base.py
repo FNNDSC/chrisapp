@@ -105,10 +105,10 @@ class ChrisAppTests(unittest.TestCase):
         self.app.save_input_meta()
         success = os.path.isfile(os.path.join(outputdir, 'input.meta.json'))
         self.assertTrue(success)
-        expected_input_meta_dict = {'json': False, 'outputdir': outputdir,
+        expected_input_meta_dict = {'json': False, 'meta': False, 'outputdir': outputdir,
                                     'saveinputmeta': False, 'inputmeta': None,
                                     'inputdir': inputdir, 'saveoutputmeta': False,
-                                    'savejson': None}
+                                    'savejson': None, 'verbosity': '0', 'version': False}
         if success:
             with open(os.path.join(outputdir, 'input.meta.json')) as meta_file:
                 input_meta_dict = json.load(meta_file)
