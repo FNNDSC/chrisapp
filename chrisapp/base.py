@@ -73,6 +73,16 @@ class VersionAction(NoArgAction):
         parser.exit()
 
 
+class ManPageAction(NoArgAction):
+    """
+    Custom action class to bypass required positional arguments when showing the app's
+    man page.
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.show_man_page()
+        parser.exit()
+
+
 class AppMetaDataAction(NoArgAction):
     """
     Custom action class to bypass required positional arguments when printing the app's
@@ -164,6 +174,9 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         ArgumentParser.add_argument(self, '-v', '--verbosity', action='store', type=str,
                                     dest='verbosity', default="0",
                                     help='verbosity level for the app')
+        ArgumentParser.add_argument(self, '--man', action=ManPageAction,
+                                    dest='man', default=False,
+                                    help="show the app's man page and exit")
         self.define_parameters()
 
     @staticmethod
@@ -175,6 +188,12 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
             msg = "Path %s not found!" % string
             raise ArgumentTypeError(msg)
         return string
+
+    def show_man_page(self):
+        """
+        Show the app's man page (abstract method in this class).
+        """
+        pass
 
     def define_parameters(self):
         """
