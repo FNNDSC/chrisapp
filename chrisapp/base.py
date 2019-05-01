@@ -69,7 +69,7 @@ class VersionAction(NoArgAction):
     version.
     """
     def __call__(self, parser, namespace, values, option_string=None):
-        print('Plugin Version: %s' % parser.get_version())
+        print(parser.get_version())
         parser.exit()
 
 
