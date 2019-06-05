@@ -40,6 +40,32 @@ class ChrisAppTests(unittest.TestCase):
         self.assertEqual(options.dir, './')
         self.assertTrue(options.flag)
 
+    def test_add_argument_raises_ValueError_if_optional_and_default_is_None(self):
+        """
+        Test whether add_argument method raises ValueError for an optional parameter
+        with default set as None.
+        """
+        with self.assertRaises(ValueError):
+            self.app.add_argument('--dir', dest='dir', type=str, default=None,
+                                  optional=True, help='look up directory')
+
+    def test_add_argument_raises_KeyError_if_optional_and_default_not_specified(self):
+        """
+        Test whether add_argument method raises KeyError for an optional parameter
+        with default not specified.
+        """
+        with self.assertRaises(KeyError):
+            self.app.add_argument('--dir', dest='dir', type=str, optional=True,
+                                  help='look up directory')
+
+    def test_add_argument_raises_KeyError_if_optional_descriptor_not_specified(self):
+        """
+        Test whether add_argument method raises KeyError if optional descriptor is
+        not specified.
+        """
+        with self.assertRaises(KeyError):
+            self.app.add_argument('--dir', dest='dir', type=str, help='look up directory')
+
     def test_get_json_representation(self):
         """
         Test whether get_json_representation method returns an appropriate json object

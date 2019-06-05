@@ -218,19 +218,19 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                 param_type = kwargs['type']
                 optional = kwargs['optional']
             except KeyError as e:
-                detail = "%s option required. " % e
-                raise KeyError(detail)
-            if optional and ('default' not in kwargs):
-                detail = "A default value is required for optional parameters %s." % name
-                raise KeyError(detail)
+                raise KeyError("%s option required. " % e)
+            if optional:
+                if 'default' not in kwargs:
+                    raise KeyError("A default value is required for optional parameter"
+                                   " %s." % name)
+                if kwargs['default'] is None:
+                    raise ValueError("Default value cannot be 'None' for optional "
+                                     "parameter %s." % name)
 
-            # grab the default and help values
-            default = None
-            if 'default' in kwargs:
-                default = kwargs['default']
-            param_help = ""
-            if 'help' in kwargs:
-                param_help = kwargs['help']
+            # grab the default, ui_exposed and help values
+            default = kwargs['default'] if 'default' in kwargs else None
+            ui_exposed = kwargs['ui_exposed'] if 'ui_exposed' in kwargs else True
+            param_help = kwargs['help'] if 'help' in kwargs else ""
 
             # set the ArgumentParser's action
             if param_type not in (str, int, float, bool, ChrisApp.path):
@@ -239,17 +239,23 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
             action = 'store'
             if param_type == bool:
                 action = 'store_false' if default else 'store_true'
-                del kwargs['default'] # 'default' and 'type' not allowed for boolean actions
+                # 'default' and 'type' not allowed for boolean actions
+                if 'default' in kwargs:
+                    del kwargs['default']
                 del kwargs['type']
             kwargs['action'] = action
 
-            # store the parameters internally (param_type.__name__ to enable json serialization)
+            # store the parameters internally
+            # use param_type.__name__ instead of param_type to enable json serialization
             param = {'name': name, 'type': param_type.__name__, 'optional': optional,
-                     'flag': args[0], 'action': action, 'help': param_help, 'default': default}
+                     'flag': args[0], 'action': action, 'help': param_help,
+                     'default': default, 'ui_exposed': ui_exposed}
             self._parameters.append(param)
 
-            # add the parameter to the parser
+            # remove custom options before calling superclass method
             del kwargs['optional']
+            if 'ui_exposed' in kwargs:
+                del kwargs['ui_exposed']
         ArgumentParser.add_argument(self, *args, **kwargs)
 
     def get_json_representation(self):
