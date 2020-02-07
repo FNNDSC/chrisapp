@@ -3,6 +3,7 @@ import os
 import shutil
 import json
 import unittest
+from argparse import ArgumentTypeError
 
 from chrisapp.base import ChrisApp
 
@@ -25,6 +26,19 @@ class ChrisAppTests(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)
+
+    def test_path(self):
+        """
+        Test whether static path method properly validates a path value (a string of
+        existing paths separated by commas).
+        """
+        path = self.test_dir
+        self.assertEqual(ChrisApp.path(path), path)
+        path = self.test_dir + ' , ' + self.test_dir
+        self.assertEqual(ChrisApp.path(path), self.test_dir + ',' + self.test_dir)
+        path = self.test_dir + ',non-existing-path'
+        with self.assertRaises(ArgumentTypeError):
+            ChrisApp.path(path)
 
     def test_add_argument(self):
         """

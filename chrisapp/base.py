@@ -183,11 +183,13 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     def path(string):
         """
         Define the 'path' data type that can be used by apps.
+        It's a string representing a list of paths separated by commas.
         """
-        if not os.path.exists(string):
-            msg = "Path %s not found!" % string
-            raise ArgumentTypeError(msg)
-        return string
+        path_list = [s.strip() for s in string.split(',')]
+        for path in path_list:
+            if not os.path.exists(path):
+                raise ArgumentTypeError("Path %s not found!" % path)
+        return ','.join(path_list)
 
     def show_man_page(self):
         """
