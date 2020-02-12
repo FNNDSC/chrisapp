@@ -191,6 +191,17 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                 raise ArgumentTypeError("Path %s not found!" % path)
         return ','.join(path_list)
 
+    @staticmethod
+    def unextpath(string):
+        """
+        Define the 'unextpath' data type that can be used by apps.
+        It's a string representing a list of paths separated by commas. Unlike the
+        'path' data type this type means that files won't be extracted from object
+        storage.
+        """
+        path_list = [s.strip() for s in string.split(',')]
+        return ','.join(path_list)
+
     def show_man_page(self):
         """
         Show the app's man page (abstract method in this class).
@@ -220,10 +231,14 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                 param_type = kwargs['type']
                 optional = kwargs['optional']
             except KeyError as e:
-                raise KeyError("%s option required. " % e)
-            if param_type not in (str, int, float, bool, ChrisApp.path):
-                raise ValueError("unsupported type: '%s'" % param_type)
+                raise KeyError("%s option required." % e)
+            if param_type not in (str, int, float, bool, ChrisApp.path,
+                                  ChrisApp.unextpath):
+                raise ValueError("Unsupported type: '%s'" % param_type)
             if optional:
+                if param_type in (ChrisApp.path, ChrisApp.unextpath):
+                    raise ValueError("Parameters of type 'path' or 'unextpath' cannot "
+                                     "be optional.")
                 if 'default' not in kwargs:
                     raise KeyError("A default value is required for optional parameter"
                                    " %s." % name)

@@ -44,16 +44,41 @@ class ChrisAppTests(unittest.TestCase):
         """
         Test whether add_argument method adds parameteres to the app
         """
-        self.app.add_argument('--dir', dest='dir', type=str, default='./', optional=True,
+        self.app.add_argument('--dir', dest='dir', type=str, default='/', optional=True,
                               help='look up directory', ui_exposed=True)
+        self.app.add_argument('--clouddir', dest='clouddir', type=ChrisApp.unextpath,
+                              optional=False, help='look up directory in cloud storage',
+                              ui_exposed=True)
         self.app.add_argument('--flag', dest='flag', type=bool, default=False,
                               optional=True, help='a boolean flag', ui_exposed=True)
         # input and output dirs are predefined positional arguments so we moc them
         inputdir = "./"
         outputdir = "./"
-        options = self.app.parse_args([inputdir, outputdir, '--flag'])
-        self.assertEqual(options.dir, './')
+        options = self.app.parse_args([inputdir, outputdir, '--clouddir', 'PACS',
+                                       '--flag'])
+        self.assertEqual(options.dir, '/')
         self.assertTrue(options.flag)
+
+    def test_add_argument_raises_ValueError_for_unsupported_type(self):
+        """
+        Test whether add_argument method raises ValueError for a parameter of an
+        unsupported type.
+        """
+        with self.assertRaises(ValueError):
+            self.app.add_argument('--dir', dest='dir', type='strangetype', default='/',
+                                  optional=True, help='look up directory')
+
+    def test_add_argument_raises_ValueError_if_optional_and_path_type(self):
+        """
+        Test whether add_argument method raises ValueError for an optional parameter
+        of type 'path' or 'unextpath'.
+        """
+        with self.assertRaises(ValueError):
+            self.app.add_argument('--dir', dest='dir', type=ChrisApp.path, optional=True,
+                                  default='/', help='look up directory')
+        with self.assertRaises(ValueError):
+            self.app.add_argument('--dir', dest='dir', type=ChrisApp.unextpath,
+                                  optional=True, default='/', help='look up directory')
 
     def test_add_argument_raises_ValueError_if_optional_and_default_is_None(self):
         """
