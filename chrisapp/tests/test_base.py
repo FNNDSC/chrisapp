@@ -44,12 +44,12 @@ class ChrisAppTests(unittest.TestCase):
         """
         Test whether add_argument method adds parameteres to the app
         """
-        self.app.add_argument('--dir', dest='dir', type=str, default='/', optional=True,
-                              help='look up directory', ui_exposed=True)
+        self.app.add_argument('-d', '--dir', dest='dir', type=str, default='/',
+                              optional=True, help='look up directory', ui_exposed=True)
         self.app.add_argument('--clouddir', dest='clouddir', type=ChrisApp.unextpath,
                               optional=False, help='look up directory in cloud storage',
                               ui_exposed=True)
-        self.app.add_argument('--flag', dest='flag', type=bool, default=False,
+        self.app.add_argument('--flag', '-f', dest='flag', type=bool, default=False,
                               optional=True, help='a boolean flag', ui_exposed=True)
         # input and output dirs are predefined positional arguments so we moc them
         inputdir = "./"

@@ -26,7 +26,6 @@
  *
  */
 """
-import sys
 import os
 from argparse import Action
 from argparse import ArgumentParser
@@ -127,12 +126,12 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     VERSION = ''
     MAX_NUMBER_OF_WORKERS = 1  # Override with integer value
     MIN_NUMBER_OF_WORKERS = 1  # Override with integer value
-    MAX_CPU_LIMIT         = '' # Override with millicore value as string, e.g. '2000m'
-    MIN_CPU_LIMIT         = '' # Override with millicore value as string, e.g. '2000m'
-    MAX_MEMORY_LIMIT      = '' # Override with string, e.g. '1Gi', '2000Mi'
-    MIN_MEMORY_LIMIT      = '' # Override with string, e.g. '1Gi', '2000Mi'
-    MIN_GPU_LIMIT         = 0  # Override with the minimum number of GPUs, as an integer, for your plugin
-    MAX_GPU_LIMIT         = 0  # Override with the maximum number of GPUs, as an integer, for your plugin
+    MAX_CPU_LIMIT = ''         # Override with millicore value as string, e.g. '2000m'
+    MIN_CPU_LIMIT = ''         # Override with millicore value as string, e.g. '2000m'
+    MAX_MEMORY_LIMIT = ''      # Override with string, e.g. '1Gi', '2000Mi'
+    MIN_MEMORY_LIMIT = ''      # Override with string, e.g. '1Gi', '2000Mi'
+    MIN_GPU_LIMIT = 0          # Override with the minimum number of GPUs, as an integer, for your plugin
+    MAX_GPU_LIMIT = 0          # Override with the maximum number of GPUs, as an integer, for your plugin
 
     OUTPUT_META_DICT = {}
 
@@ -261,11 +260,20 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                     del kwargs['default']
                 del kwargs['type']
             kwargs['action'] = action
+            # set the flag
+            short_flag = flag = args[0]
+            if len(args) > 1:
+                if args[0].startswith('--'):
+                    flag = args[0]
+                    short_flag = args[1]
+                else:
+                    flag = args[1]
+                    short_flag = args[0]
             # store the parameters internally
             # use param_type.__name__ instead of param_type to enable json serialization
             param = {'name': name, 'type': param_type.__name__, 'optional': optional,
-                     'flag': args[0], 'action': action, 'help': param_help,
-                     'default': default, 'ui_exposed': ui_exposed}
+                     'flag': flag, 'short_flag': short_flag, 'action': action,
+                     'help': param_help, 'default': default, 'ui_exposed': ui_exposed}
             self._parameters.append(param)
             # remove custom options before calling superclass method
             del kwargs['optional']
@@ -277,29 +285,29 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         """
         Return a JSON object with a representation of this app (type and parameters).
         """
-        repres = {}
-        repres['type'] = self.TYPE
-        repres['parameters'] = self._parameters
-        repres['icon'] = self.ICON
-        repres['authors'] = self.AUTHORS
-        repres['title'] = self.TITLE
-        repres['category'] = self.CATEGORY
-        repres['description'] = self.DESCRIPTION
-        repres['documentation'] = self.DOCUMENTATION
-        repres['license'] = self.LICENSE
-        repres['version'] = self.VERSION
-        repres['selfpath'] = self.SELFPATH
-        repres['selfexec'] = self.SELFEXEC
-        repres['execshell'] = self.EXECSHELL
-        repres['max_number_of_workers'] = self.MAX_NUMBER_OF_WORKERS
-        repres['min_number_of_workers'] = self.MIN_NUMBER_OF_WORKERS
-        repres['max_memory_limit'] = self.MAX_MEMORY_LIMIT
-        repres['max_cpu_limit'] = self.MAX_CPU_LIMIT 
-        repres['min_memory_limit'] = self.MIN_MEMORY_LIMIT
-        repres['min_cpu_limit'] = self.MIN_CPU_LIMIT 
-        repres['min_gpu_limit'] = self.MIN_GPU_LIMIT
-        repres['max_gpu_limit'] = self.MAX_GPU_LIMIT
-        return repres
+        representation = {'type': self.TYPE,
+                          'parameters': self._parameters,
+                          'icon': self.ICON,
+                          'authors': self.AUTHORS,
+                          'title': self.TITLE,
+                          'category': self.CATEGORY,
+                          'description': self.DESCRIPTION,
+                          'documentation': self.DOCUMENTATION,
+                          'license': self.LICENSE,
+                          'version': self.VERSION,
+                          'selfpath': self.SELFPATH,
+                          'selfexec': self.SELFEXEC,
+                          'execshell': self.EXECSHELL,
+                          'max_number_of_workers': self.MAX_NUMBER_OF_WORKERS,
+                          'min_number_of_workers': self.MIN_NUMBER_OF_WORKERS,
+                          'max_memory_limit': self.MAX_MEMORY_LIMIT,
+                          'min_memory_limit': self.MIN_MEMORY_LIMIT,
+                          'max_cpu_limit': self.MAX_CPU_LIMIT,
+                          'min_cpu_limit': self.MIN_CPU_LIMIT,
+                          'max_gpu_limit':self.MAX_GPU_LIMIT,
+                          'min_gpu_limit': self.MIN_GPU_LIMIT
+                          }
+        return representation
 
     def save_json_representation(self, dir_path):
         """
@@ -376,18 +384,8 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         """
         Print the app's meta data.
         """
-        l_metaData  = dir(self)
-        l_classVar  = [x for x in l_metaData if x.isupper() ]
-        for str_var in l_classVar:
+        meta_data = dir(self)
+        class_var = [x for x in meta_data if x.isupper()]
+        for str_var in class_var:
             str_val = getattr(self, str_var)
             print("%20s: %s" % (str_var, str_val))
-
-    def error(self, message):
-        """
-        The error handler if wrong commandline arguments are specified.
-        """
-        print()
-        sys.stderr.write('ERROR: %s\n' % message)
-        print()
-        self.print_help()
-        sys.exit(2)
