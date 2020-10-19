@@ -1,4 +1,5 @@
 
+import sys
 import os
 import shutil
 import json
@@ -215,3 +216,30 @@ class ChrisAppTests(unittest.TestCase):
         self.app.save_output_meta()
         output_meta_dict = self.app.load_output_meta()
         self.assertEqual(output_meta_dict, self.app.OUTPUT_META_DICT)
+
+    def test_interrogate_setup(self):
+
+        class NoseFakePlugin(ChrisApp):
+            PACKAGE = 'nose'
+            TYPE = 'FS',
+            OUTPUT_META_DICT = {}
+
+            def show_man_page(self):
+                print('man')
+
+            def define_parameters(self):
+                pass
+
+            def run(self, options):
+                print('run')
+
+        self.assertEqual(NoseFakePlugin.AUTHORS, 'Jason Pellerin <jpellerin+nose@gmail.com>')
+        self.assertEqual(NoseFakePlugin.TITLE, 'nose')
+        self.assertEqual(NoseFakePlugin.DESCRIPTION, 'nose extends unittest to make testing easier')
+        self.assertEqual(NoseFakePlugin.DOCUMENTATION, 'http://readthedocs.org/docs/nose/')
+        self.assertEqual(NoseFakePlugin.VERSION, '1.3.7')
+        self.assertEqual(
+            NoseFakePlugin.SELFPATH,
+            os.path.join(os.getenv('VIRTUAL_ENV'), 'bin') if 'VIRTUAL_ENV' in os.environ else '/usr/local/bin')
+        self.assertEqual(NoseFakePlugin.SELFEXEC, 'nosetests')
+        self.assertEqual(NoseFakePlugin.EXECSHELL, sys.executable)

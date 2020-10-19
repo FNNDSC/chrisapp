@@ -21,7 +21,7 @@ setup(
       packages         =   ['chrisapp'],
       #install_requires =   [],
       test_suite       =   'nose.collector',
-      tests_require    =   ['nose'],
+      tests_require    =   ['nose==1.3.7'],
       #scripts          =   [],
       license          =   'MIT',
       zip_safe=False
