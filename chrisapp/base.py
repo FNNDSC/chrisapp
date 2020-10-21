@@ -231,6 +231,14 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                 optional = kwargs['optional']
             except KeyError as e:
                 raise KeyError("%s option required." % e)
+
+            # 'optional' (our custom flag) and 'required' (from the real argparse) should agree
+            if 'required' in kwargs:
+                if kwargs['required'] == kwargs['optional']:
+                    raise KeyError('required and optional contradict')
+            else:
+                kwargs['required'] = not kwargs['optional']
+
             if param_type not in (str, int, float, bool, ChrisApp.path,
                                   ChrisApp.unextpath):
                 raise ValueError("Unsupported type: '%s'" % param_type)
