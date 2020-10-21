@@ -17,5 +17,5 @@ setup(
     tests_require    = ['nose==1.3.7'],
     license          = 'MIT',
     zip_safe         = False,
-    python_requires='>=3.5'
+    python_requires = '>=3.7'
 )
