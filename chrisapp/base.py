@@ -18,7 +18,7 @@
  *
  *                       U  L  T  R  O  N
  *
- * (c) 2016 Fetal-Neonatal Neuroimaging & Developmental Science Center
+ * (c) 2016-2020 Fetal-Neonatal Neuroimaging & Developmental Science Center
  *                   Boston Children's Hospital
  *
  *              http://childrenshospital.org/FNNDSC/
@@ -27,10 +27,10 @@
  */
 """
 import os
-from argparse import Action
-from argparse import ArgumentParser
-from argparse import ArgumentTypeError
+import sys
+from argparse import Action, ArgumentParser, ArgumentTypeError
 import json
+import importlib.metadata
 
 
 class NoArgAction(Action):
@@ -97,21 +97,87 @@ class BaseClassAttrEnforcer(type):
     Meta class to enforce class variables in subclasses.
     """
     def __init__(cls, name, bases, d):
+        if 'PACKAGE' in d:
+            # interrogate setup.py to automatically fill in some class attributes for the subclass
+            autofill = ['AUTHORS', 'TITLE', 'DESCRIPTION', 'LICENSE', 'DOCUMENTATION', 'VERSION']
+            for attr in autofill:
+                if attr in d:
+                    raise ValueError('Do not manually set value value for '
+                                     f'"{attr}" when "PACKAGE={d["PACKAGE"]}" is declared')
+
+            pkg = importlib.metadata.Distribution.from_name(d['PACKAGE'])
+            setup = pkg.metadata
+            cls.AUTHORS = f'{setup["author"]} <{setup["author-email"]}>'
+            d['AUTHORS'] = cls.AUTHORS
+            cls.TITLE = setup['name']
+            d['TITLE'] = cls.TITLE
+            cls.DESCRIPTION = setup['summary']
+            d['DESCRIPTION'] = cls.DESCRIPTION
+            cls.LICENSE = setup['license']
+            d['LICENSE'] = cls.LICENSE
+            cls.DOCUMENTATION = setup['home-page']
+            d['DOCUMENTATION'] = cls.DOCUMENTATION
+            cls.VERSION = setup['version']
+            d['VERSION'] = cls.VERSION
+
+            if 'SELFEXEC' not in d:
+                eps = [ep for ep in pkg.entry_points if ep.group == 'console_scripts']
+                if eps:
+                    if len(eps) > 1:
+                        # multiple console_scripts found but maybe they're just the same thing
+                        different_scripts = [ep for ep in eps if ep.value != eps[0].value]
+                        if different_scripts:
+                            raise ValueError('SELFEXEC not defined and more than one console_scripts found')
+                    cls.SELFEXEC = eps[0].name
+                    d['SELFEXEC'] = cls.SELFEXEC
+                    cls.EXECSHELL = sys.executable
+                    d['EXECSHELL'] = cls.EXECSHELL
+                    # when pip is used to install a script on the metal, it is put in /usr/local/bin
+                    # but if we're in a virtualenv, try to detect that
+                    cls.SELFPATH = os.path.join(os.getenv('VIRTUAL_ENV'), 'bin') \
+                        if 'VIRTUAL_ENV' in os.environ else '/usr/local/bin'
+                    d['SELFPATH'] = cls.SELFPATH
+
         # class variables to be enforced in the subclasses
-        attrs = ['DESCRIPTION', 'TYPE', 'TITLE', 'LICENSE', 'SELFPATH', 'SELFEXEC',
-                 'EXECSHELL', 'OUTPUT_META_DICT', 'AUTHORS', 'VERSION']
+        attrs = [
+            'DESCRIPTION', 'TYPE', 'TITLE', 'LICENSE', 'AUTHORS', 'VERSION',
+            'SELFPATH', 'SELFEXEC', 'EXECSHELL'
+        ]
         for attr in attrs:
             if attr not in d:
-                raise ValueError("Class %s doesn't define %s class variable" % (name,
-                                                                                attr))
+                raise ValueError(f"Class {name} doesn't define {attr} class variable")
+            if type(d[attr]) is not str:
+                raise ValueError(f'{attr} ({type(attr)}) must be a string')
+        if 'OUTPUT_META_DICT' not in d:
+            raise ValueError(f"Class {name} doesn't define OUTPUT_META_DICT")
+        if type(d['OUTPUT_META_DICT']) is not dict:
+            raise ValueError('OUTPUT_META_DICT must be dict')
         type.__init__(cls, name, bases, d)
 
 
 class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     """
-    The super class for all valid ChRIS plugin apps.
-    """
+    The superclass for all ChRIS plugin apps.
 
+    Meta-information about the subclass must be given as class attributes.
+    This is enforced by a metaclass.
+
+    Subclasses should manually define
+
+        AUTHORS, TITLE, DESCRIPTION, LICENSE, DOCUMENTATION, VERSION,
+        SELFPATH, SELFEXEC, EXECSHELL
+
+    Or, the metaclass can interrogate setup.py to discover the information
+    automatically. Enable this feature by setting
+
+        PACKAGE = __package__
+
+    The following class variables *must* be supplied, as they cannot
+    be discovered from setup.py
+
+        TYPE, OUTPUT_META_DICT
+
+    """
     AUTHORS = 'FNNDSC (dev@babyMRI.org)'
     TITLE = ''
     CATEGORY = ''
@@ -124,14 +190,22 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
     DOCUMENTATION = ''
     LICENSE = ''
     VERSION = ''
-    MAX_NUMBER_OF_WORKERS = 1  # Override with integer value
-    MIN_NUMBER_OF_WORKERS = 1  # Override with integer value
-    MAX_CPU_LIMIT = ''         # Override with millicore value as string, e.g. '2000m'
-    MIN_CPU_LIMIT = ''         # Override with millicore value as string, e.g. '2000m'
-    MAX_MEMORY_LIMIT = ''      # Override with string, e.g. '1Gi', '2000Mi'
-    MIN_MEMORY_LIMIT = ''      # Override with string, e.g. '1Gi', '2000Mi'
-    MIN_GPU_LIMIT = 0          # Override with the minimum number of GPUs, as an integer, for your plugin
-    MAX_GPU_LIMIT = 0          # Override with the maximum number of GPUs, as an integer, for your plugin
+    MAX_NUMBER_OF_WORKERS = 1
+    """Integer value"""
+    MIN_NUMBER_OF_WORKERS = 1
+    """Integer value"""
+    MAX_CPU_LIMIT = ''
+    """millicore value as string, e.g. '2000m'"""
+    MIN_CPU_LIMIT = ''
+    """millicore value as string, e.g. '2000m'"""
+    MAX_MEMORY_LIMIT = ''
+    """string, e.g. '1Gi', '2000Mi'"""
+    MIN_MEMORY_LIMIT = ''
+    """string, e.g. '1Gi', '2000Mi'"""
+    MIN_GPU_LIMIT = 0
+    """number of GPUs"""
+    MAX_GPU_LIMIT = 0
+    """number of GPUs"""
 
     OUTPUT_META_DICT = {}
 
@@ -231,6 +305,14 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                 optional = kwargs['optional']
             except KeyError as e:
                 raise KeyError("%s option required." % e)
+
+            # 'optional' (our custom flag) and 'required' (from the real argparse) should agree
+            if 'required' in kwargs:
+                if kwargs['required'] == kwargs['optional']:
+                    raise KeyError('required and optional contradict')
+            else:
+                kwargs['required'] = not kwargs['optional']
+
             if param_type not in (str, int, float, bool, ChrisApp.path,
                                   ChrisApp.unextpath):
                 raise ValueError("Unsupported type: '%s'" % param_type)
