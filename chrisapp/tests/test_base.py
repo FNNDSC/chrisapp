@@ -217,11 +217,32 @@ class ChrisAppTests(unittest.TestCase):
         output_meta_dict = self.app.load_output_meta()
         self.assertEqual(output_meta_dict, self.app.OUTPUT_META_DICT)
 
-    def test_interrogate_setup(self):
+    def test_enforce_attr_string(self):
+        with self.assertRaisesRegex(ValueError, 'must be a string') as cm:
+            class VersionIsFloat(ChrisApp):
+                DESCRIPTION = 'should not work'
+                TYPE = 'DS'
+                TITLE = 'broken'
+                LICENSE = 'MIT'
+                SELFPATH = '/usr/local/bin'
+                SELFEXEC = 'wow'
+                EXECSHELL = 'python'
+                AUTHORS = 'me'
+                VERSION = 1.2  # wrong, should be a str
 
+                def show_man_page(self):
+                    print('man')
+
+                def define_parameters(self):
+                    pass
+
+                def run(self, options):
+                    print('run')
+
+    def test_interrogate_setup(self):
         class NoseFakePlugin(ChrisApp):
             PACKAGE = 'nose'
-            TYPE = 'FS',
+            TYPE = 'FS'
             OUTPUT_META_DICT = {}
 
             def show_man_page(self):

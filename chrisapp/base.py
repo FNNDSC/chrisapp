@@ -104,6 +104,7 @@ class BaseClassAttrEnforcer(type):
                 if attr in d:
                     raise ValueError('Do not manually set value value for '
                                      f'"{attr}" when "PACKAGE={d["PACKAGE"]}" is declared')
+
             pkg = importlib.metadata.Distribution.from_name(d['PACKAGE'])
             setup = pkg.metadata
             cls.AUTHORS = f'{setup["author"]} <{setup["author-email"]}>'
@@ -137,13 +138,20 @@ class BaseClassAttrEnforcer(type):
                         if 'VIRTUAL_ENV' in os.environ else '/usr/local/bin'
                     d['SELFPATH'] = cls.SELFPATH
 
-
         # class variables to be enforced in the subclasses
-        attrs = ['DESCRIPTION', 'TYPE', 'TITLE', 'LICENSE', 'SELFPATH', 'SELFEXEC',
-                 'EXECSHELL', 'OUTPUT_META_DICT', 'AUTHORS', 'VERSION']
+        attrs = [
+            'DESCRIPTION', 'TYPE', 'TITLE', 'LICENSE', 'AUTHORS', 'VERSION',
+            'SELFPATH', 'SELFEXEC', 'EXECSHELL'
+        ]
         for attr in attrs:
             if attr not in d:
                 raise ValueError(f"Class {name} doesn't define {attr} class variable")
+            if type(d[attr]) is not str:
+                raise ValueError(f'{attr} ({type(attr)}) must be a string')
+        if 'OUTPUT_META_DICT' not in d:
+            raise ValueError(f"Class {name} doesn't define OUTPUT_META_DICT")
+        if type(d['OUTPUT_META_DICT']) is not dict:
+            raise ValueError('OUTPUT_META_DICT must be dict')
         type.__init__(cls, name, bases, d)
 
 
