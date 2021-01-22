@@ -18,7 +18,7 @@
  *
  *                       U  L  T  R  O  N
  *
- * (c) 2016-2020 Fetal-Neonatal Neuroimaging & Developmental Science Center
+ * (c) 2016-2021 Fetal-Neonatal Neuroimaging & Developmental Science Center
  *                   Boston Children's Hospital
  *
  *              http://childrenshospital.org/FNNDSC/
@@ -98,12 +98,15 @@ class BaseClassAttrEnforcer(type):
     """
     def __init__(cls, name, bases, d):
         if 'PACKAGE' in d:
-            # interrogate setup.py to automatically fill in some class attributes for the subclass
-            autofill = ['AUTHORS', 'TITLE', 'DESCRIPTION', 'LICENSE', 'DOCUMENTATION', 'VERSION']
+            # interrogate setup.py to automatically fill in some
+            # class attributes for the subclass
+            autofill = ['AUTHORS', 'TITLE', 'DESCRIPTION', 'LICENSE', 'DOCUMENTATION',
+                        'VERSION']
             for attr in autofill:
                 if attr in d:
-                    raise ValueError('Do not manually set value value for '
-                                     f'"{attr}" when "PACKAGE={d["PACKAGE"]}" is declared')
+                    raise ValueError(
+                        'Do not manually set value value for '
+                        f'"{attr}" when "PACKAGE={d["PACKAGE"]}" is declared')
 
             pkg = importlib.metadata.Distribution.from_name(d['PACKAGE'])
             setup = pkg.metadata
@@ -124,16 +127,19 @@ class BaseClassAttrEnforcer(type):
                 eps = [ep for ep in pkg.entry_points if ep.group == 'console_scripts']
                 if eps:
                     if len(eps) > 1:
-                        # multiple console_scripts found but maybe they're just the same thing
+                        # multiple console_scripts found but maybe
+                        # they're just the same thing
                         different_scripts = [ep for ep in eps if ep.value != eps[0].value]
                         if different_scripts:
-                            raise ValueError('SELFEXEC not defined and more than one console_scripts found')
+                            raise ValueError(
+                                'SELFEXEC not defined and more than one '
+                                'console_scripts found')
                     cls.SELFEXEC = eps[0].name
                     d['SELFEXEC'] = cls.SELFEXEC
                     cls.EXECSHELL = sys.executable
                     d['EXECSHELL'] = cls.EXECSHELL
-                    # when pip is used to install a script on the metal, it is put in /usr/local/bin
-                    # but if we're in a virtualenv, try to detect that
+                    # when pip is used to install a script on the metal, it is put in
+                    # /usr/local/bin but if we're in a virtualenv, try to detect that
                     cls.SELFPATH = os.path.join(os.getenv('VIRTUAL_ENV'), 'bin') \
                         if 'VIRTUAL_ENV' in os.environ else '/usr/local/bin'
                     d['SELFPATH'] = cls.SELFPATH
@@ -214,30 +220,27 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         The constructor of this app.
         """
         ArgumentParser.__init__(self, description=self.DESCRIPTION)
+
         # the custom parameter list
         self._parameters = []
-        # operations on automatically computed JSON representation of the app
+
         ArgumentParser.add_argument(self, '--json', action=JsonAction, dest='json',
                                     default=False,
                                     help='show json representation of app and exit')
         ArgumentParser.add_argument(self, '--savejson', action=SaveJsonAction,
                                     type=ChrisApp.path, dest='savejson', metavar='DIR',
                                     help='save json representation file to DIR and exit')
-        if self.TYPE == 'ds':
-            # 'ds' plugins require an input directory
-            ArgumentParser.add_argument(self, 'inputdir', action='store', type=str,
-                              help='directory containing the input files')
-        # all plugins require an output directory
-        ArgumentParser.add_argument(self, 'outputdir', action='store', type=str,
-                          help='directory containing the output files/folders')
+
         ArgumentParser.add_argument(self, '--inputmeta', action='store', dest='inputmeta',
-                          help='meta data file containing the arguments passed to this app')
+                                    help='meta data file containing the arguments passed '
+                                         'to this app')
         ArgumentParser.add_argument(self, '--saveinputmeta', action='store_true',
                                     dest='saveinputmeta',
                                     help='save arguments to a JSON file')
         ArgumentParser.add_argument(self, '--saveoutputmeta', action='store_true',
                                     dest='saveoutputmeta',
                                     help='save output meta data to a JSON file')
+
         ArgumentParser.add_argument(self, '--version', action=VersionAction,
                                     dest='version', default=False,
                                     help='print app version and exit')
@@ -250,6 +253,31 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         ArgumentParser.add_argument(self, '--man', action=ManPageAction,
                                     dest='man', default=False,
                                     help="show the app's man page and exit")
+
+        # 'ds' plugins require an input directory positional argument
+        if self.TYPE == 'ds':
+            ArgumentParser.add_argument(self, 'inputdir', action='store', type=str,
+                                        help='directory containing the input files')
+
+        # all plugins require an output directory positional argument
+        ArgumentParser.add_argument(self, 'outputdir', action='store', type=str,
+                                    help='directory containing the output files/folders')
+
+        # topological plugin's especial parameters
+        if self.TYPE == 'ts':
+            self.add_argument('--plugininstances', dest='plugininstances', type=str,
+                              optional=True, default='',
+                              help='string representing a comma-separated list of plugin '
+                                   'instance ids')
+            self.add_argument('-f', '--filter', dest='filter', type=str, optional=True,
+                              default='',
+                              help="regular expression to filter the plugin instances' "
+                                   "output path")
+            self.add_argument('-e', '--extractpaths', dest='extractpaths', type=bool,
+                              optional=True, default=False,
+                              help="if set then the matched paths from the plugin "
+                                   "instances' output path are sent to the remote "
+                                   "compute")
         self.define_parameters()
 
     @staticmethod
@@ -295,45 +323,21 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
 
     def add_argument(self, *args, **kwargs):
         """
-        Add a parameter to this app.
+        Overriden to add a new parameter to this app.
         """
         if not (('action' in kwargs) and (kwargs['action'] == 'help')):
-            # make sure required parameter options were defined
-            try:
-                name = kwargs['dest']
-                param_type = kwargs['type']
-                optional = kwargs['optional']
-            except KeyError as e:
-                raise KeyError("%s option required." % e)
+            self.validate_argument_options(**kwargs)
 
-            # 'optional' (our custom flag) and 'required' (from the real argparse) should agree
-            if 'required' in kwargs:
-                if kwargs['required'] == kwargs['optional']:
-                    raise KeyError('required and optional contradict')
-            else:
-                kwargs['required'] = not kwargs['optional']
-
-            if param_type not in (str, int, float, bool, ChrisApp.path,
-                                  ChrisApp.unextpath):
-                raise ValueError("Unsupported type: '%s'" % param_type)
-            if optional:
-                if param_type in (ChrisApp.path, ChrisApp.unextpath):
-                    raise ValueError("Parameters of type 'path' or 'unextpath' cannot "
-                                     "be optional.")
-                if 'default' not in kwargs:
-                    raise KeyError("A default value is required for optional parameter"
-                                   " %s." % name)
-                if kwargs['default'] is None:
-                    raise ValueError("Default value cannot be 'None' for optional "
-                                     "parameter %s." % name)
-            # set the default, ui_exposed and help values
+            # set required, default, ui_exposed and help values
+            optional = kwargs['optional']
+            if 'required' not in kwargs:
+                kwargs['required'] = not optional
             default = kwargs['default'] if 'default' in kwargs else None
-            param_help = kwargs['help'] if 'help' in kwargs else ""
+            param_help = kwargs['help'] if 'help' in kwargs else ''
             ui_exposed = kwargs['ui_exposed'] if 'ui_exposed' in kwargs else True
-            if not ui_exposed and not optional:
-                raise ValueError("Parameter %s is not optional and therefore must be "
-                                 "exposed to the UI." % name)
+
             # set the ArgumentParser's action
+            param_type = kwargs['type']
             action = 'store'
             if param_type == bool:
                 action = 'store_false' if default else 'store_true'
@@ -342,26 +346,64 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                     del kwargs['default']
                 del kwargs['type']
             kwargs['action'] = action
+
             # set the flag
             short_flag = flag = args[0]
             if len(args) > 1:
                 if args[0].startswith('--'):
-                    flag = args[0]
                     short_flag = args[1]
                 else:
                     flag = args[1]
-                    short_flag = args[0]
-            # store the parameters internally
+
+            # store the parameter internally
             # use param_type.__name__ instead of param_type to enable json serialization
+            name = kwargs['dest']
             param = {'name': name, 'type': param_type.__name__, 'optional': optional,
                      'flag': flag, 'short_flag': short_flag, 'action': action,
                      'help': param_help, 'default': default, 'ui_exposed': ui_exposed}
             self._parameters.append(param)
+
             # remove custom options before calling superclass method
             del kwargs['optional']
             if 'ui_exposed' in kwargs:
                 del kwargs['ui_exposed']
         ArgumentParser.add_argument(self, *args, **kwargs)
+
+    def validate_argument_options(self, **kwargs):
+        """
+        Validate argument's options passed as kwargs.
+        """
+        # make sure required parameter options are defined
+        try:
+            name = kwargs['dest']
+            optional = kwargs['optional']
+            param_type = kwargs['type']
+        except KeyError as e:
+            raise KeyError("%s option required." % e)
+
+        # 'optional' (our custom flag) and 'required' (from argparse) should agree
+        if ('required' in kwargs) and (kwargs['required'] == optional):
+            raise KeyError("Values for 'required' and 'optional' contradict for "
+                           "parameter %s." % name)
+
+        if param_type not in (str, int, float, bool, ChrisApp.path,
+                              ChrisApp.unextpath):
+            raise ValueError("Unsupported type: '%s'" % param_type)
+        if optional:
+            if param_type in (ChrisApp.path, ChrisApp.unextpath):
+                raise ValueError("Parameters of type 'path' or 'unextpath' cannot "
+                                 "be optional.")
+            if 'default' not in kwargs:
+                raise KeyError("A default value is required for optional parameter"
+                               " %s." % name)
+            if kwargs['default'] is None:
+                raise ValueError("Default value cannot be 'None' for optional "
+                                 "parameter %s." % name)
+
+        ui_exposed = kwargs['ui_exposed'] if 'ui_exposed' in kwargs else True
+        if not ui_exposed and not optional:
+            raise ValueError("Parameter %s is not optional and therefore must be "
+                             "exposed to the UI." % name)
 
     def get_json_representation(self):
         """
@@ -402,7 +444,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
 
     def launch(self, args=None):
         """
-        This method triggers the parsing of arguments.
+        Trigger the parsing of arguments.
         """
         self.options = self.parse_args(args)
         if self.options.saveinputmeta:

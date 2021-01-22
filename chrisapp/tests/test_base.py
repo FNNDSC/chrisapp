@@ -43,7 +43,7 @@ class ChrisAppTests(unittest.TestCase):
 
     def test_add_argument(self):
         """
-        Test whether add_argument method adds parameteres to the app
+        Test whether add_argument method adds parameters to the app
         """
         self.app.add_argument('-d', '--dir', dest='dir', type=str, default='/',
                               optional=True, help='look up directory', ui_exposed=True)
@@ -60,61 +60,67 @@ class ChrisAppTests(unittest.TestCase):
         self.assertEqual(options.dir, '/')
         self.assertTrue(options.flag)
 
-    def test_add_argument_raises_ValueError_for_unsupported_type(self):
+    def test_validate_argument_options_raises_ValueError_for_unsupported_type(self):
         """
-        Test whether add_argument method raises ValueError for a parameter of an
-        unsupported type.
+        Test whether validate_argument_options method raises ValueError for a parameter
+        of an unsupported type.
         """
         with self.assertRaises(ValueError):
-            self.app.add_argument('--dir', dest='dir', type='strangetype', default='/',
-                                  optional=True, help='look up directory')
+            kwargs = {'dest': 'dir', 'type': 'strangetype', 'optional': False,
+                      'help': 'look up directory'}
+            self.app.validate_argument_options(**kwargs)
 
-    def test_add_argument_raises_ValueError_if_optional_and_path_type(self):
+    def test_validate_argument_options_raises_ValueError_if_optional_and_path_type(self):
         """
-        Test whether add_argument method raises ValueError for an optional parameter
-        of type 'path' or 'unextpath'.
+        Test whether validate_argument_options method raises ValueError for an optional
+        parameter of type 'path' or 'unextpath'.
         """
+        kwargs = {'dest': 'dir', 'type': ChrisApp.path, 'optional': True, 'default': '/',
+                  'help': 'look up directory'}
         with self.assertRaises(ValueError):
-            self.app.add_argument('--dir', dest='dir', type=ChrisApp.path, optional=True,
-                                  default='/', help='look up directory')
+            self.app.validate_argument_options(**kwargs)
+        kwargs['type'] = ChrisApp.unextpath
         with self.assertRaises(ValueError):
-            self.app.add_argument('--dir', dest='dir', type=ChrisApp.unextpath,
-                                  optional=True, default='/', help='look up directory')
+            self.app.validate_argument_options(**kwargs)
 
-    def test_add_argument_raises_ValueError_if_optional_and_default_is_None(self):
+    def test_validate_argument_options_raises_ValueError_if_optional_and_default_is_None(self):
         """
-        Test whether add_argument method raises ValueError for an optional parameter
-        with default set as None.
+        Test whether validate_argument_options method raises ValueError for an optional
+        parameter with default set as None.
         """
+        kwargs = {'dest': 'dir', 'type': str, 'optional': True, 'default': None,
+                  'help': 'look up directory'}
         with self.assertRaises(ValueError):
-            self.app.add_argument('--dir', dest='dir', type=str, default=None,
-                                  optional=True, help='look up directory')
+            self.app.validate_argument_options(**kwargs)
 
-    def test_add_argument_raises_KeyError_if_optional_and_default_not_specified(self):
+    def test_validate_argument_options_raises_KeyError_if_optional_and_default_not_specified(self):
         """
-        Test whether add_argument method raises KeyError for an optional parameter
-        with default not specified.
+        Test whether validate_argument_options method raises KeyError for an optional
+        parameter with default not specified.
         """
+        kwargs = {'dest': 'dir', 'type': str, 'optional': True,
+                  'help': 'look up directory'}
         with self.assertRaises(KeyError):
-            self.app.add_argument('--dir', dest='dir', type=str, optional=True,
-                                  help='look up directory')
+            self.app.validate_argument_options(**kwargs)
 
-    def test_add_argument_raises_KeyError_if_optional_descriptor_not_specified(self):
+    def test_validate_argument_options_raises_KeyError_if_optional_descriptor_not_specified(self):
         """
-        Test whether add_argument method raises KeyError if optional descriptor is
-        not specified.
+        Test whether validate_argument_options method raises KeyError if optional
+        descriptor is not specified.
         """
+        kwargs = {'dest': 'dir', 'type': str,  'help': 'look up directory'}
         with self.assertRaises(KeyError):
-            self.app.add_argument('--dir', dest='dir', type=str, help='look up directory')
+            self.app.validate_argument_options(**kwargs)
 
-    def test_add_argument_raises_ValueError_if_not_ui_exposed_and_not_optional(self):
+    def test_validate_argument_options_raises_ValueError_if_not_ui_exposed_and_not_optional(self):
         """
-        Test whether add_argument method raises ValueError for a parameter that is not
-        UI exposed and not optional.
+        Test whether validate_argument_options method raises ValueError for a parameter
+        that is not UI exposed and not optional.
         """
+        kwargs = {'dest': 'dir', 'type': str, 'optional': False, 'ui_exposed': False,
+                  'help': 'look up directory'}
         with self.assertRaises(ValueError):
-            self.app.add_argument('--dir', dest='dir', type=str, optional=False,
-                                  help='look up directory', ui_exposed=False)
+            self.app.validate_argument_options(**kwargs)
 
     def test_get_json_representation(self):
         """
