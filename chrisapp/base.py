@@ -139,12 +139,15 @@ class BaseClassAttrEnforcer(type):
                     d['SELFEXEC'] = cls.SELFEXEC
                     cls.EXECSHELL = sys.executable
                     d['EXECSHELL'] = cls.EXECSHELL
-                    cls.SELFPATH = os.path.dirname(shutil.which(cls.SELFEXEC))
+                    script_location = shutil.which(cls.SELFEXEC)
+                    if not script_location:
+                        raise EnvironmentError(cls.SELFEXEC + ' not found in PATH - check your SELFEXEC')
+                    cls.SELFPATH = os.path.dirname(script_location)
                     d['SELFPATH'] = cls.SELFPATH
 
             script_location = os.path.join(cls.SELFPATH, cls.SELFEXEC)
             if not os.path.isfile(script_location):
-                raise EnvironmentError(script_location + ' not found: check your SELFPATH, SELFEXEC')
+                raise EnvironmentError(script_location + ' not found - check your SELFPATH, SELFEXEC')
 
         # class variables to be enforced in the subclasses
         attrs = [
