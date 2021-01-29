@@ -138,10 +138,7 @@ class BaseClassAttrEnforcer(type):
                     d['SELFEXEC'] = cls.SELFEXEC
                     cls.EXECSHELL = sys.executable
                     d['EXECSHELL'] = cls.EXECSHELL
-                    # when pip is used to install a script on the metal, it is put in
-                    # /usr/local/bin but if we're in a virtualenv, try to detect that
-                    cls.SELFPATH = os.path.join(os.getenv('VIRTUAL_ENV'), 'bin') \
-                        if 'VIRTUAL_ENV' in os.environ else '/usr/local/bin'
+                    cls.SELFPATH = cls.find_selfpath()
                     d['SELFPATH'] = cls.SELFPATH
 
         # class variables to be enforced in the subclasses
@@ -159,6 +156,13 @@ class BaseClassAttrEnforcer(type):
         if type(d['OUTPUT_META_DICT']) is not dict:
             raise ValueError('OUTPUT_META_DICT must be dict')
         type.__init__(cls, name, bases, d)
+
+    def find_selfpath(cls):
+        for directory in os.environ['PATH'].split(':'):
+            fullpath = os.path.join(directory, cls.SELFEXEC)
+            if os.path.isfile(fullpath):
+                return directory
+        raise EnvironmentError(f'{cls.SELFEXEC} not found in {os.environ["PATH"]}')
 
 
 class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
