@@ -28,6 +28,7 @@
 """
 import os
 import sys
+import shutil
 from argparse import Action, ArgumentParser, ArgumentTypeError
 import json
 import importlib.metadata
@@ -138,8 +139,12 @@ class BaseClassAttrEnforcer(type):
                     d['SELFEXEC'] = cls.SELFEXEC
                     cls.EXECSHELL = sys.executable
                     d['EXECSHELL'] = cls.EXECSHELL
-                    cls.SELFPATH = cls.find_selfpath()
+                    cls.SELFPATH = os.path.dirname(shutil.which(cls.SELFEXEC))
                     d['SELFPATH'] = cls.SELFPATH
+
+            script_location = os.path.join(cls.SELFPATH, cls.SELFEXEC)
+            if not os.path.isfile(script_location):
+                raise EnvironmentError(script_location + ' not found: check your SELFPATH, SELFEXEC')
 
         # class variables to be enforced in the subclasses
         attrs = [
@@ -156,13 +161,6 @@ class BaseClassAttrEnforcer(type):
         if type(d['OUTPUT_META_DICT']) is not dict:
             raise ValueError('OUTPUT_META_DICT must be dict')
         type.__init__(cls, name, bases, d)
-
-    def find_selfpath(cls):
-        for directory in os.environ['PATH'].split(':'):
-            fullpath = os.path.join(directory, cls.SELFEXEC)
-            if os.path.isfile(fullpath):
-                return directory
-        raise EnvironmentError(f'{cls.SELFEXEC} not found in {os.environ["PATH"]}')
 
 
 class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
