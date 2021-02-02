@@ -1,0 +1,22 @@
+# run everything just to make sure it works!
+
+name: CI
+
+on: [ push, pull_request ]
+jobs:
+  local:
+    name: Nose tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: install nose
+        run: |
+          pip install nose
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - run: nosetests
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-20.04
+    steps:
+      # TODO: run cookiecutter-chrisapp's tests
+      - run: echo "not implemented yet"
