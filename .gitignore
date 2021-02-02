@@ -1,11 +1,13 @@
 *~
 *.DS_Store
 __pycache__
+venv/
 docs/build
 .coverage
 htmlcov
 .docker
 .idea/
+.vscode/
 # all log files
 *.log
 
