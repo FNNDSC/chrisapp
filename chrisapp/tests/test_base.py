@@ -265,8 +265,6 @@ class ChrisAppTests(unittest.TestCase):
         self.assertEqual(NoseFakePlugin.DESCRIPTION, 'nose extends unittest to make testing easier')
         self.assertEqual(NoseFakePlugin.DOCUMENTATION, 'http://readthedocs.org/docs/nose/')
         self.assertEqual(NoseFakePlugin.VERSION, '1.3.7')
-        self.assertEqual(
-            NoseFakePlugin.SELFPATH,
-            os.path.join(os.getenv('VIRTUAL_ENV'), 'bin') if 'VIRTUAL_ENV' in os.environ else '/usr/local/bin')
+        self.assertTrue(os.path.isfile(os.path.join(NoseFakePlugin.SELFPATH, NoseFakePlugin.SELFEXEC)))
         self.assertEqual(NoseFakePlugin.SELFEXEC, 'nosetests')
         self.assertEqual(NoseFakePlugin.EXECSHELL, sys.executable)

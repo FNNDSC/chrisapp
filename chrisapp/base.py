@@ -28,6 +28,7 @@
 """
 import os
 import sys
+import shutil
 from argparse import Action, ArgumentParser, ArgumentTypeError
 import json
 import importlib.metadata
@@ -138,11 +139,15 @@ class BaseClassAttrEnforcer(type):
                     d['SELFEXEC'] = cls.SELFEXEC
                     cls.EXECSHELL = sys.executable
                     d['EXECSHELL'] = cls.EXECSHELL
-                    # when pip is used to install a script on the metal, it is put in
-                    # /usr/local/bin but if we're in a virtualenv, try to detect that
-                    cls.SELFPATH = os.path.join(os.getenv('VIRTUAL_ENV'), 'bin') \
-                        if 'VIRTUAL_ENV' in os.environ else '/usr/local/bin'
+                    script_location = shutil.which(cls.SELFEXEC)
+                    if not script_location:
+                        raise EnvironmentError(cls.SELFEXEC + ' not found in PATH - check your SELFEXEC')
+                    cls.SELFPATH = os.path.dirname(script_location)
                     d['SELFPATH'] = cls.SELFPATH
+
+            script_location = os.path.join(cls.SELFPATH, cls.SELFEXEC)
+            if not os.path.isfile(script_location):
+                raise EnvironmentError(script_location + ' not found - check your SELFPATH, SELFEXEC')
 
         # class variables to be enforced in the subclasses
         attrs = [
