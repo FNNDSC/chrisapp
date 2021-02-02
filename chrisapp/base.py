@@ -100,8 +100,7 @@ class BaseClassAttrEnforcer(type):
         if 'PACKAGE' in d:
             # interrogate setup.py to automatically fill in some
             # class attributes for the subclass
-            autofill = ['AUTHORS', 'TITLE', 'DESCRIPTION', 'LICENSE', 'DOCUMENTATION',
-                        'VERSION']
+            autofill = ['AUTHORS', 'DESCRIPTION', 'LICENSE', 'DOCUMENTATION', 'VERSION']
             for attr in autofill:
                 if attr in d:
                     raise ValueError(
@@ -110,10 +109,11 @@ class BaseClassAttrEnforcer(type):
 
             pkg = importlib.metadata.Distribution.from_name(d['PACKAGE'])
             setup = pkg.metadata
+            if 'TITLE' not in d:
+                cls.TITLE = setup['name']
+                d['TITLE'] = cls.TITLE
             cls.AUTHORS = f'{setup["author"]} <{setup["author-email"]}>'
             d['AUTHORS'] = cls.AUTHORS
-            cls.TITLE = setup['name']
-            d['TITLE'] = cls.TITLE
             cls.DESCRIPTION = setup['summary']
             d['DESCRIPTION'] = cls.DESCRIPTION
             cls.LICENSE = setup['license']
