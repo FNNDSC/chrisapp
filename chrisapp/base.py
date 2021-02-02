@@ -101,8 +101,7 @@ class BaseClassAttrEnforcer(type):
         if 'PACKAGE' in d:
             # interrogate setup.py to automatically fill in some
             # class attributes for the subclass
-            autofill = ['AUTHORS', 'TITLE', 'DESCRIPTION', 'LICENSE', 'DOCUMENTATION',
-                        'VERSION']
+            autofill = ['AUTHORS', 'DESCRIPTION', 'LICENSE', 'DOCUMENTATION', 'VERSION']
             for attr in autofill:
                 if attr in d:
                     raise ValueError(
@@ -111,10 +110,11 @@ class BaseClassAttrEnforcer(type):
 
             pkg = importlib.metadata.Distribution.from_name(d['PACKAGE'])
             setup = pkg.metadata
+            if 'TITLE' not in d:
+                cls.TITLE = setup['name']
+                d['TITLE'] = cls.TITLE
             cls.AUTHORS = f'{setup["author"]} <{setup["author-email"]}>'
             d['AUTHORS'] = cls.AUTHORS
-            cls.TITLE = setup['name']
-            d['TITLE'] = cls.TITLE
             cls.DESCRIPTION = setup['summary']
             d['DESCRIPTION'] = cls.DESCRIPTION
             cls.LICENSE = setup['license']
@@ -276,13 +276,9 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                                    'instance ids')
             self.add_argument('-f', '--filter', dest='filter', type=str, optional=True,
                               default='',
-                              help="regular expression to filter the plugin instances' "
-                                   "output path")
-            self.add_argument('-e', '--extractpaths', dest='extractpaths', type=bool,
-                              optional=True, default=False,
-                              help="if set then the matched paths from the plugin "
-                                   "instances' output path are sent to the remote "
-                                   "compute")
+                              help="string representing a comma-separated list of "
+                                   "regular expressions to filter each of the input "
+                                   "plugin instances' output dirs")
         self.define_parameters()
 
     @staticmethod

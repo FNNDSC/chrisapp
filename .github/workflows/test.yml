@@ -1,0 +1,65 @@
+# run everything just to make sure it works!
+
+name: CI
+
+on: [ push, pull_request ]
+jobs:
+  local:
+    name: Nose tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: install nose
+        run: |
+          pip install nose
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - run: nosetests
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-20.04
+    steps:
+      - name: install cookiecutter
+        run: |
+          pip install cookiecutter
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Checkout cookiecutter-chrisapp
+        uses: actions/checkout@v2
+        with:
+          repository: FNNDSC/cookiecutter-chrisapp
+          path: cookiecutter-chrisapp
+      - name: Checkout chrisapp
+        uses: actions/checkout@v2
+        with:
+          path: 'cookiecutter-chrisapp/{{cookiecutter.app_repo_name}}/chrisapp'
+      - name: Patch template to use current chrisapp
+        run: |
+          # since we copied a git repo into a cookiecutter template,
+          # we need to make that git repo more friendly to cookiecutter
+          cd cookiecutter-chrisapp
+          python << EOF
+          import json
+          with open('cookiecutter.json', 'r') as f:
+              d = json.load(f)
+          d['_copy_without_render'] = ['chrisapp/.github/workflows/*']
+          with open('cookiecutter.json', 'w') as f:
+              f.write(json.dumps(d))
+          EOF
+          cd *cookiecutter.app_repo_name*
+          rm -rf chrisapp/.git
+
+          # inhibit installation of chrisapp from pypi by
+          # - deleting from requirements.txt
+          # - running pip install --no-deps .
+
+          sed -i '/chrisapp/d' requirements.txt
+          cat > Dockerfile << EOF
+          FROM python:3.9.1-buster
+          WORKDIR /usr/local/src
+          COPY . .
+          RUN pip install ./chrisapp && pip install -r requirements.txt && pip install --no-deps .
+          CMD ["{{ cookiecutter.app_name }}", "--help"]
+          EOF
+      - name: setup CUBE
+        uses: fnndsc/minimake@v1
+      - name: Run example
+        run: ./cookiecutter-chrisapp/example.sh cookiecutter-chrisapp
