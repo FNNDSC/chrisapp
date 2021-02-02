@@ -25,7 +25,7 @@ jobs:
       - name: Checkout cookiecutter-chrisapp
         uses: actions/checkout@v2
         with:
-          repository: FNNDSC/cookiecutter-chrisapp/
+          repository: FNNDSC/cookiecutter-chrisapp
           path: cookiecutter-chrisapp
       - name: Checkout chrisapp
         uses: actions/checkout@v2
