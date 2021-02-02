@@ -6,7 +6,7 @@ with open(path.join(path.dirname(path.abspath(__file__)), 'README.rst')) as f:
 
 setup(
     name             = 'chrisapp',
-    version          = '2.3.0',
+    version          = '2.3.0-1',
     description      = 'Superclass for Chris plugin apps',
     long_description = readme,
     author           = 'FNNDSC',
