@@ -271,13 +271,9 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                                    'instance ids')
             self.add_argument('-f', '--filter', dest='filter', type=str, optional=True,
                               default='',
-                              help="regular expression to filter the plugin instances' "
-                                   "output path")
-            self.add_argument('-e', '--extractpaths', dest='extractpaths', type=bool,
-                              optional=True, default=False,
-                              help="if set then the matched paths from the plugin "
-                                   "instances' output path are sent to the remote "
-                                   "compute")
+                              help="string representing a comma-separated list of "
+                                   "regular expressions to filter each of the input "
+                                   "plugin instances' output dirs")
         self.define_parameters()
 
     @staticmethod
