@@ -11,13 +11,18 @@ on:
 jobs:
   local:
     name: Nose tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '3.6', '3.8', '3.x' ]
     steps:
       - uses: actions/checkout@v2
-      - name: install nose
-        run: |
-          pip install nose
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install .
+      - run: pip install nose
       - run: nosetests
   integration:
     name: Integration tests
@@ -65,6 +70,6 @@ jobs:
           CMD ["{{ cookiecutter.app_name }}", "--help"]
           EOF
       - name: setup CUBE
-        uses: fnndsc/minimake@v1
+        uses: fnndsc/minimake@v2
       - name: Run example
         run: ./cookiecutter-chrisapp/example.sh cookiecutter-chrisapp
