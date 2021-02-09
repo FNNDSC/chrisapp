@@ -31,8 +31,13 @@ import sys
 import shutil
 from argparse import Action, ArgumentParser, ArgumentTypeError
 import json
-import importlib.metadata
 
+try:
+    # since python>=3.8, importlib.metadata is part of the standard library
+    from importlib.metadata import Distribution
+except ModuleNotFoundError:
+    # for python<=3.7, a backport is used
+    from importlib_metadata import Distribution
 
 class NoArgAction(Action):
     """
@@ -108,7 +113,7 @@ class BaseClassAttrEnforcer(type):
                         'Do not manually set value value for '
                         f'"{attr}" when "PACKAGE={d["PACKAGE"]}" is declared')
 
-            pkg = importlib.metadata.Distribution.from_name(d['PACKAGE'])
+            pkg = Distribution.from_name(d['PACKAGE'])
             setup = pkg.metadata
             if 'TITLE' not in d:
                 cls.TITLE = setup['name']
