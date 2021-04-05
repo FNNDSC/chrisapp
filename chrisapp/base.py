@@ -284,6 +284,11 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                               help="string representing a comma-separated list of "
                                    "regular expressions to filter each of the input "
                                    "plugin instances' output dirs")
+            self.add_argument('-g', '--groupByInstance', dest='groupByInstance',
+                              type=bool, optional=True, default=False,
+                              help="if set then an output directory is created for each "
+                                   "input plugin instance within this plugin app's "
+                                   "output path")
         self.define_parameters()
 
     @staticmethod
