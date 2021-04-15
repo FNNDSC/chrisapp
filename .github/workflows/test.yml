@@ -72,4 +72,4 @@ jobs:
       - name: setup CUBE
         uses: fnndsc/minimake@v2
       - name: Run example
-        run: ./cookiecutter-chrisapp/example.sh cookiecutter-chrisapp
+        run: ./cookiecutter-chrisapp/tests/example.sh cookiecutter-chrisapp
