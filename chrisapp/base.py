@@ -39,6 +39,7 @@ except ModuleNotFoundError:
     # for python<=3.7, a backport is used
     from importlib_metadata import Distribution
 
+
 class NoArgAction(Action):
     """
     Base class for action classes that do not have arguments.
@@ -65,16 +66,6 @@ class SaveJsonAction(Action):
     """
     def __call__(self, parser, namespace, values, option_string=None):
         parser.save_json_representation(values)
-        parser.exit()
-
-
-class VersionAction(NoArgAction):
-    """
-    Custom action class to bypass required positional arguments when printing the app's
-    version.
-    """
-    def __call__(self, parser, namespace, values, option_string=None):
-        print(parser.get_version())
         parser.exit()
 
 
@@ -251,9 +242,8 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                                     dest='saveoutputmeta',
                                     help='save output meta data to a JSON file')
 
-        ArgumentParser.add_argument(self, '--version', action=VersionAction,
-                                    dest='version', default=False,
-                                    help='print app version and exit')
+        ArgumentParser.add_argument(self, '--version', action='version',
+                                    version='%(prog)s ' + self.get_version())
         ArgumentParser.add_argument(self, '--meta', action=AppMetaDataAction,
                                     dest='meta', default=False,
                                     help='print app meta data and exit')
