@@ -243,7 +243,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
                                     help='save output meta data to a JSON file')
 
         ArgumentParser.add_argument(self, '--version', action='version',
-                                    version='%(prog)s ' + self.get_version())
+                                    version=self.get_version())
         ArgumentParser.add_argument(self, '--meta', action=AppMetaDataAction,
                                     dest='meta', default=False,
                                     help='print app meta data and exit')
@@ -499,7 +499,7 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         with open(file_path) as infile:
             return json.load(infile)
 
-    def get_version(self):
+    def get_version(self) -> str:
         """
         Return the app's version.
         """
