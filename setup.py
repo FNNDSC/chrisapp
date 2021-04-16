@@ -6,7 +6,7 @@ with open(path.join(path.dirname(path.abspath(__file__)), 'README.rst')) as f:
 
 setup(
     name             = 'chrisapp',
-    version          = '3.0.0-rc.1',
+    version          = '3.0.0-rc.2',
     description      = 'Superclass for Chris plugin apps',
     long_description = readme,
     author           = 'FNNDSC',
@@ -14,7 +14,7 @@ setup(
     url              = 'https://github.com/FNNDSC/chrisapp',
     packages         = ['chrisapp'],
     install_requires = [
-        'importlib-metadata; python_version<"3.7"'
+        'importlib-metadata; python_version<"3.8"'
     ],
     test_suite       = 'nose.collector',
     tests_require    = ['nose==1.3.7'],
