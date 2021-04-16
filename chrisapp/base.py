@@ -247,9 +247,6 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
         ArgumentParser.add_argument(self, '--meta', action=AppMetaDataAction,
                                     dest='meta', default=False,
                                     help='print app meta data and exit')
-        ArgumentParser.add_argument(self, '-v', '--verbosity', action='store', type=str,
-                                    dest='verbosity', default="0",
-                                    help='verbosity level for the app')
         ArgumentParser.add_argument(self, '--man', action=ManPageAction,
                                     dest='man', default=False,
                                     help="show the app's man page and exit")
