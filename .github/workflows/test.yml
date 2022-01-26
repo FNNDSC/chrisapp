@@ -70,6 +70,6 @@ jobs:
           CMD ["{{ cookiecutter.app_name }}", "--help"]
           EOF
       - name: setup CUBE
-        uses: FNNDSC/miniChRIS@v5
+        uses: FNNDSC/miniChRIS@20211115
       - name: Run example
         run: ./cookiecutter-chrisapp/tests/example.sh cookiecutter-chrisapp
