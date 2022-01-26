@@ -18,7 +18,7 @@
  *
  *                       U  L  T  R  O  N
  *
- * (c) 2016-2021 Fetal-Neonatal Neuroimaging & Developmental Science Center
+ * (c) 2016-2022 Fetal-Neonatal Neuroimaging & Developmental Science Center
  *                   Boston Children's Hospital
  *
  *              http://childrenshospital.org/FNNDSC/
@@ -113,6 +113,10 @@ class BaseClassAttrEnforcer(type):
             d['AUTHORS'] = cls.AUTHORS
             cls.DESCRIPTION = setup['summary']
             d['DESCRIPTION'] = cls.DESCRIPTION
+            # argpase (the superclass) reads cls.description, so we want to set it
+            if 'description' not in d:
+                cls.description = cls.DESCRIPTION
+                d['description'] = cls.description
             cls.LICENSE = setup['license']
             d['LICENSE'] = cls.LICENSE
             cls.DOCUMENTATION = setup['home-page']
@@ -303,9 +307,10 @@ class ChrisApp(ArgumentParser, metaclass=BaseClassAttrEnforcer):
 
     def show_man_page(self):
         """
-        Show the app's man page (abstract method in this class).
+        Show the app's man page.
         """
-        pass
+        self.print_help()
+        print('\nDocumentation: ' + self.DOCUMENTATION)
 
     def define_parameters(self):
         """
